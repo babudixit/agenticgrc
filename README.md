@@ -21,12 +21,13 @@ Specification v2.0) for the full spec.
 - **Unified Pydantic schemas as the internal contract.** `UnifiedControl`,
   `UnifiedVulnerability`, `UnifiedAsset`, `UnifiedFinding`, `UnifiedWeakness`
   (CWE), `UnifiedAttackTechnique` (MITRE ATT&CK), `AttackControlMapping`
-  (technique→control edges). Vendor-specific field names never leak past a
-  normalizer boundary.
+  (technique→control edges), `MappedFinding` (the mapping agent's output).
+  Vendor-specific field names never leak past a normalizer boundary.
 - **JSON-Lines as the interchange format** between ingesters/normalizers and
   loaders, keeping ingestion and storage independently testable.
-- **LangGraph** for agent orchestration; Neo4j Cypher, ChromaDB retrieval, KEV
-  lookups, and EPSS lookups are exposed to agents as tools.
+- **LangGraph** for agent orchestration; read-only Neo4j Cypher and ChromaDB
+  semantic search are exposed to the mapping agent as tools (KEV/EPSS lookups
+  planned for the synthesis agent).
 - **Claude (Anthropic SDK)** as the LLM reasoning engine — `claude-sonnet-4-5`
   by default, with headroom to upgrade the synthesis agent to Opus.
 
@@ -64,8 +65,9 @@ as a CLI entry point, e.g. `python -m grc_agent.ingesters.nist_sp800_53`.
 
 - Python 3.11+
 - Docker Desktop (or another Docker Engine) for Neo4j
-- (Later deliverables) an Anthropic API key, and read-only API credentials for
-  the vendors you're integrating (Tenable to start)
+- An Anthropic API key (`ANTHROPIC_API_KEY` in `.env`) to run the mapping
+  agent, and read-only API credentials for the vendors you're integrating
+  (Tenable to start)
 
 ## Setup
 
@@ -220,6 +222,71 @@ decision, that hop has no reliable public mapping (CWE and ATT&CK are
 maintained independently) and is left to the mapping agent's ChromaDB
 semantic-search fallback rather than an unreliable CAPEC bridge.
 
+## The mapping agent (Deliverable 5)
+
+`agents/mapping_agent.py` is a **LangGraph** state machine that maps a single
+`UnifiedFinding` to candidate ATT&CK techniques and mitigating controls,
+returning a `MappedFinding` (`schemas/mapped_finding.py`: `matched_cves`,
+`matched_weaknesses`, `matched_techniques`/`matched_controls` — each with a
+`match_method` and per-match confidence — plus an LLM-written `reasoning`
+narrative and `overall_confidence`).
+
+**Architecture — same "deterministic modules, LLM only reasons" rule as
+every other deliverable:**
+
+- Graph traversal and semantic search are the deterministic tools; they never
+  decide what belongs in the final answer.
+- `tools/neo4j_tools.run_read_query` exposes **read-only Cypher** as a tool:
+  the query text is LLM-generated, so it's guarded as untrusted input — a
+  regex rejects any write clause/procedure (`CREATE`, `MERGE`, `DELETE`,
+  `SET`, `DROP`, `CALL apoc.periodic...`, `CALL dbms...`, etc.) *before* the
+  query reaches Neo4j, on top of requesting the driver's own `READ` routing
+  mode.
+- `tools/chroma_tools.py` builds/queries the `attack_techniques` Chroma
+  collection (one document per technique: `"{name}: {description}"`) for the
+  CWE→ATT&CK semantic fallback. Embeddings use ChromaDB's bundled
+  `DefaultEmbeddingFunction` — a local ONNX build of `all-MiniLM-L6-v2` (the
+  same model named in `Settings.chroma_embedding_model`) — so there's no
+  torch/sentence-transformers dependency, no GPU, and no external API calls
+  or per-query cost for embedding.
+- Claude drives the loop via the **raw Anthropic Python SDK** (not a
+  LangChain chat-model wrapper, per the project's original LLM-client
+  decision). It may call `run_cypher_query` and/or
+  `semantic_search_attack_techniques` any number of times, then must finish
+  by calling a terminal `submit_mapped_finding` tool with its structured
+  answer — forcing the final answer through a tool call (rather than parsing
+  free-form JSON from text) is what makes the structured output reliable.
+  LangGraph only orchestrates `agent -> tools -> agent -> ... -> END`, plus a
+  hard `force_finish` fallback if `max_tool_iterations` (default 15) is
+  exhausted without a submission, so the agent can never loop forever or run
+  away on API cost.
+- Every external dependency (Anthropic client, Neo4j driver, Chroma
+  collection) is injected, so `map_finding()` — and the whole LangGraph state
+  machine — is fully unit-testable with `unittest.mock` and a fake,
+  network-free embedding function; no live API/DB access happens in tests.
+
+```powershell
+# One-time: embed all ingested ATT&CK techniques into the Chroma collection
+# the semantic-search tool queries (re-run after every ATT&CK refresh).
+python -m grc_agent.tools.chroma_tools --input data/attack_techniques.jsonl
+
+# Map every finding in a JSON-Lines file to a MappedFinding.
+python -m grc_agent.agents.mapping_agent --input data/tenable_findings.jsonl --output data/mapped_findings.jsonl
+```
+
+**Verified live** against a real Neo4j graph (113K+ CVEs, 969 CWEs, 697 ATT&CK
+techniques), a real ChromaDB collection, and real Claude (`claude-sonnet-4-5`)
+calls, on a CVE with a real graph-loaded CWE mapping (CVE-2025-27223 → static
+cookie-encryption key): the agent traversed `Vulnerability -[:MAPS_TO]->
+Weakness (CWE-1004)`, explored the CWE hierarchy for closer matches
+(landing on CWE-321/CWE-565/CWE-798), semantically matched those against
+ATT&CK (`T1606.001` "Web Cookies" at 83.5% similarity, `T1550.004` "Web
+Session Cookie", `T1539` "Steal Web Session Cookie"), traversed each
+technique's `[:MAPS_TO]-> Control` edges, and submitted a mapping citing
+8 NIST SP 800-53 controls (`SC-12`, `SC-23`, `IA-5`, `SI-2`, `AC-3`, `SC-8`,
+`AC-6`, `AC-2`) with an overall confidence of 0.92 and a reasoning narrative
+citing the specific graph/semantic evidence used at each step.
+
 ## Delivery roadmap (Phase 1)
 
 Built incrementally, each deliverable working end-to-end before the next
@@ -241,18 +308,16 @@ begins:
    (Tenable finding → `UnifiedFinding`). Verified against a real Tenable.io
    export (6 findings spanning single-CVE, multi-CVE, and zero-CVE/
    compliance-check patterns across critical/high/medium severities).
-5. **First agent** 🚧 *(reference data ready, agent in progress)* —
-   `agents/mapping_agent.py`, a LangGraph state machine that maps a
-   `UnifiedFinding` to controls, ATT&CK techniques, and confidence scores via
-   Neo4j traversal with ChromaDB semantic fallback. The CVE→CWE→ATT&CK→
-   Controls graph it will query is fully built: `ingesters/mitre_cwe.py`,
-   `ingesters/mitre_attack.py`, `ingesters/nist_nvd.py`, and
-   `ingesters/ctid_attack_control_mappings.py` are ingested and loaded (see
-   above) — `UnifiedWeakness`, `UnifiedAttackTechnique`, and
-   `AttackControlMapping` were added to the schema layer to support them.
-   Still to build: the LangGraph state machine itself, its Neo4j
-   Cypher/ChromaDB tool wrappers, and the ChromaDB semantic-search fallback
-   for the CWE→ATT&CK hop.
+5. **First agent** ✅ *(this deliverable)* — `agents/mapping_agent.py`, a
+   LangGraph state machine that maps a `UnifiedFinding` to `MappedFinding`
+   (candidate ATT&CK techniques + mitigating controls, each with a
+   `match_method`/confidence, plus an LLM reasoning narrative) via Neo4j
+   graph traversal (exposed as a read-only, write-clause-guarded Cypher
+   tool) with a ChromaDB semantic-search fallback for the CWE→ATT&CK hop.
+   Claude drives the tool-use loop through the raw Anthropic SDK and finishes
+   via a terminal `submit_mapped_finding` tool call for reliable structured
+   output. Verified live end-to-end (see above) against the real Neo4j graph,
+   a real 697-technique Chroma collection, and real Claude calls.
 
 Deferred beyond these five: the synthesis agent, additional vendor
 normalizers, the FastAPI layer, and the frontend/UI (Phase 3+).

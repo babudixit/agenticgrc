@@ -8,15 +8,42 @@ smoke-test helpers so neither has to duplicate connection handling.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
+from typing import Any
 
 import structlog
-from neo4j import Driver, GraphDatabase
+from neo4j import Driver, GraphDatabase, RoutingControl
 from neo4j.exceptions import Neo4jError, ServiceUnavailable
 
 from grc_agent.config.settings import get_settings
 
 logger = structlog.get_logger(__name__)
+
+# Word-boundary match on every Cypher clause/procedure that can mutate the
+# graph or its schema. Deliberately broad (better to reject a legitimate
+# read than to execute an unintended write) since queries reaching this
+# guard are LLM-generated (Deliverable 5's mapping agent).
+_WRITE_CLAUSE_PATTERN = re.compile(
+    r"\b(CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|LOAD\s+CSV"
+    r"|CALL\s*\{|CALL\s+apoc\.(?:create|merge|refactor|periodic|schema)"
+    r"|CALL\s+db\.(?:createIndex|createProperty|index)"
+    r"|CALL\s+dbms\.)",
+    re.IGNORECASE,
+)
+
+
+class UnsafeCypherQueryError(ValueError):
+    """Raised when a Cypher query text looks like it would mutate the graph or schema."""
+
+
+def _assert_read_only(cypher: str) -> None:
+    match = _WRITE_CLAUSE_PATTERN.search(cypher)
+    if match:
+        raise UnsafeCypherQueryError(
+            f"Refusing to execute Cypher containing a write clause/procedure "
+            f"({match.group(0)!r}). Only read (MATCH/RETURN/WHERE/...) queries are allowed."
+        )
 
 
 def get_driver() -> Driver:
@@ -49,6 +76,34 @@ def verify_connectivity() -> dict[str, str]:
     info = dict(records[0]) if records else {}
     logger.info("neo4j_connectivity_verified", uri=settings.neo4j_uri, **info)
     return info
+
+
+def run_read_query(
+    cypher: str,
+    parameters: dict[str, Any] | None = None,
+    *,
+    driver: Driver,
+    database: str | None = None,
+    row_limit: int = 50,
+) -> list[dict[str, Any]]:
+    """Execute a read-only Cypher query and return rows as plain JSON-serializable dicts.
+
+    This is the tool the mapping agent (Deliverable 5) exposes to Claude for graph
+    traversal (CVE -> Weakness -> AttackTechnique -> Control). The query text is
+    LLM-generated, so it's treated as untrusted input: `_assert_read_only` rejects
+    any write clause/procedure as defense-in-depth, on top of requesting Neo4j's
+    own READ routing mode. `row_limit` caps how many rows are returned to keep the
+    agent's context window bounded regardless of what the query itself requests.
+    """
+    _assert_read_only(cypher)
+    settings = get_settings()
+    records, _, _ = driver.execute_query(
+        cypher,
+        parameters_=parameters or {},
+        database_=database or settings.neo4j_database,
+        routing_=RoutingControl.READ,
+    )
+    return [dict(record) for record in records[:row_limit]]
 
 
 def _run_cli(argv: list[str] | None = None) -> int:

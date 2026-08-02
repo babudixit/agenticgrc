@@ -12,11 +12,13 @@ from grc_agent.schemas.enums import (
     AssetType,
     CloudProvider,
     Framework,
+    MatchMethod,
     Severity,
     SourceClass,
 )
 from grc_agent.schemas.finding import UnifiedFinding
 from grc_agent.schemas.ingestion_result import IngestionResult
+from grc_agent.schemas.mapped_finding import MappedControl, MappedFinding, MappedTechnique
 from grc_agent.schemas.source_system import SourceSystem
 from grc_agent.schemas.vulnerability import UnifiedVulnerability
 from grc_agent.schemas.weakness import UnifiedWeakness
@@ -28,6 +30,10 @@ __all__ = [
     "CloudProvider",
     "Framework",
     "IngestionResult",
+    "MappedControl",
+    "MappedFinding",
+    "MappedTechnique",
+    "MatchMethod",
     "Severity",
     "SourceClass",
     "SourceSystem",

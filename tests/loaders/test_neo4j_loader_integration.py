@@ -248,22 +248,30 @@ def test_full_traversal_vulnerability_to_control(loader_run_id: str) -> None:
             loader_run_id=loader_run_id,
         )
 
+        # Filter by this run's provenance (r.loader_run_id), not just the
+        # generated IDs: the live graph also holds ~113K real bulk-ingested
+        # NVD CVEs, and a hash-derived "CVE-2024-NNNN" fixture ID can
+        # legitimately collide with one of them (and already have its own,
+        # unrelated MAPS_TO edges) without this filter.
         vuln_to_weakness, _, _ = driver.execute_query(
-            "MATCH (v:Vulnerability {cve_id: $cve_id})-[:MAPS_TO]->(w:Weakness) "
-            "RETURN w.weakness_id AS weakness_id",
+            "MATCH (v:Vulnerability {cve_id: $cve_id})-[r:MAPS_TO {loader_run_id: $loader_run_id}]->"
+            "(w:Weakness) RETURN w.weakness_id AS weakness_id",
             cve_id=vulnerability.cve_id,
+            loader_run_id=loader_run_id,
             database_=settings.neo4j_database,
         )
         assert len(vuln_to_weakness) == 1
         assert vuln_to_weakness[0]["weakness_id"] == weakness.weakness_id
 
         full_chain, _, _ = driver.execute_query(
-            "MATCH (v:Vulnerability {cve_id: $cve_id})-[:MAPS_TO]->(w:Weakness) "
+            "MATCH (v:Vulnerability {cve_id: $cve_id})-[:MAPS_TO {loader_run_id: $loader_run_id}]->"
+            "(w:Weakness) "
             "MATCH (t:AttackTechnique {technique_id: $technique_id})-[:MAPS_TO]->(c:Control) "
             "RETURN v.cve_id AS cve_id, w.weakness_id AS weakness_id, "
             "t.technique_id AS technique_id, c.control_id AS control_id",
             cve_id=vulnerability.cve_id,
             technique_id=technique.technique_id,
+            loader_run_id=loader_run_id,
             database_=settings.neo4j_database,
         )
         assert len(full_chain) == 1

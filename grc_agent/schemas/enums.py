@@ -82,3 +82,17 @@ class CloudProvider(StrEnum):
     GCP = "gcp"
     ON_PREM = "on_prem"
     OTHER = "other"
+
+
+class MatchMethod(StrEnum):
+    """How the mapping agent (Deliverable 5) arrived at a given ATT&CK-technique match.
+
+    `GRAPH_TRAVERSAL`/`DIRECT` matches are deterministic (a real Neo4j edge, or an
+    ID the source finding already carried) and get high confidence by construction;
+    `SEMANTIC_SEARCH` matches come from the ChromaDB CWE->ATT&CK fallback and
+    carry the vector similarity score as their confidence instead.
+    """
+
+    DIRECT = "direct"
+    GRAPH_TRAVERSAL = "graph_traversal"
+    SEMANTIC_SEARCH = "semantic_search"

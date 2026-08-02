@@ -139,3 +139,38 @@ def attack_control_mapping_data() -> dict[str, Any]:
         "comments": "Account Management supports monitoring for unusual activity.",
         "raw_source": {"attack_object_id": "T1556.009", "capability_id": "AC-02"},
     }
+
+
+@pytest.fixture
+def mapped_finding_data() -> dict[str, Any]:
+    return {
+        "finding_id": "tenable:144982:prod-web-01",
+        "agent_run_id": "run-0001",
+        "mapped_at": "2024-05-18T02:15:00Z",
+        "model_used": "claude-sonnet-4-5",
+        "matched_cves": ["CVE-2021-3156"],
+        "matched_weaknesses": ["CWE-193", "CWE-787"],
+        "matched_techniques": [
+            {
+                "technique_id": "T1068",
+                "name": "Exploitation for Privilege Escalation",
+                "match_method": "semantic_search",
+                "confidence": 0.72,
+                "rationale": "CWE-787 (out-of-bounds write) semantically matches T1068's "
+                "description of exploiting memory-corruption flaws.",
+            }
+        ],
+        "matched_controls": [
+            {
+                "control_id": "SI-2",
+                "framework": "NIST_SP_800-53_r5",
+                "title": "Flaw Remediation",
+                "via_technique_ids": ["T1068"],
+                "confidence": 0.72,
+            }
+        ],
+        "reasoning": "CVE-2021-3156 (sudo heap overflow) maps to CWE-787, which has no direct "
+        "graph edge to an ATT&CK technique; semantic search over technique descriptions "
+        "surfaced T1068 as the closest match, which is mitigated by SI-2.",
+        "overall_confidence": 0.72,
+    }

@@ -26,6 +26,8 @@ dependencies = [
     "neo4j>=5.20", # official Bolt driver — spec §7.3
     "requests>=2.32", # HTTP for reference-data APIs — spec §7.8
     "anthropic>=0.40", # Claude via the Anthropic Python SDK — spec's chosen LLM client
+    "langgraph>=0.2", # agent orchestration — spec's chosen state-machine framework
+    "chromadb>=0.5", # embedded vector store for semantic search — spec §7.4
 ]
 
 [project.optional-dependencies]
@@ -69,7 +71,14 @@ line-length = 100
 target-version = ["py311"]
 
 [tool.mypy]
-python_version = "3.11"
+# NOTE: this is mypy's *checking* target, not the project's minimum supported
+# runtime (still >=3.11, enforced separately by ruff's target-version=py311).
+# numpy (a transitive chromadb dependency, pulled in by Deliverable 5's Chroma
+# tools) ships .pyi stubs using PEP 695 `type` statements that mypy can only
+# parse under python_version >= 3.12; bumping this setting is the documented
+# workaround (module-level follow_imports=skip overrides don't prevent mypy
+# from still needing to parse the stub file itself).
+python_version = "3.12"
 files = ["grc_agent"]
 warn_unused_ignores = true
 warn_redundant_casts = true
