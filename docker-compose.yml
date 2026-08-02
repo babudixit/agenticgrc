@@ -1,0 +1,49 @@
+services:
+  neo4j:
+    image: neo4j:5-community
+    container_name: grc_neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474" # HTTP browser UI
+      - "7687:7687" # Bolt protocol
+    environment:
+      NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-changeme123}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*
+      NEO4J_server_memory_pagecache_size: 512M
+      NEO4J_server_memory_heap_max__size: 1G
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "cypher-shell -u ${NEO4J_USER:-neo4j} -p ${NEO4J_PASSWORD:-changeme123} 'RETURN 1' || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ChromaDB runs embedded (persistent, SQLite-backed, in-process via the
+  # `chromadb` Python client — see grc_agent/config/settings.py:CHROMA_PERSIST_DIR)
+  # per spec §7.4, so no server container is required for Phase 1 to satisfy
+  # FR-501/FR-502. This service is a placeholder for teams that prefer a
+  # standalone Chroma server instead of the embedded client; it is NOT started
+  # by `docker-compose up` or `docker-compose up neo4j` because it belongs to
+  # the optional "server" profile.
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: grc_chromadb
+    profiles: ["server"]
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  chroma_data:

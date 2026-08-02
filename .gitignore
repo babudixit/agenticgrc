@@ -1,0 +1,39 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Testing / tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local data — reference-data caches, JSON-Lines ingester output, Chroma persistence
+data/
+*.jsonl
+
+# Neo4j / Docker volumes bind-mounted locally (if any)
+neo4j_data/
+neo4j_logs/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Microsoft Office lock files (e.g. opening the requirements .docx for review)
+~$*.doc*
+~$*.xls*
+~$*.ppt*

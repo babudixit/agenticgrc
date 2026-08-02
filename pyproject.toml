@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grc-agent"
+version = "0.1.0"
+description = "Agentic Governance, Risk & Compliance (GRC) tool for cybersecurity — ingests structured scanner/CSPM/SIEM findings and maps them to NIST/CIS/MITRE ATT&CK controls."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Cyber-GRC" }]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+]
+
+# Dependencies are added incrementally as each deliverable requires them,
+# rather than declared up front.
+dependencies = [
+    "pydantic>=2.7",
+    "pydantic-settings>=2.2",
+    "structlog>=24.1",
+    "neo4j>=5.20", # official Bolt driver — spec §7.3
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6",
+    "black>=24.4",
+    "mypy>=1.10",
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["grc_agent*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+src = ["grc_agent", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+]
+ignore = [
+    "E501", # line length is enforced by black/formatter, not the linter
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["grc_agent"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["grc_agent"]
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+# Third-party vendor SDKs (pyTenable, neo4j, chromadb, anthropic, etc.) frequently
+# ship incomplete or missing type stubs; don't fail the build over that.
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
