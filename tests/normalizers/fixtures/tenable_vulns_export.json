@@ -1,0 +1,462 @@
+{
+  "findings": [
+    {
+      "asset": {
+        "device_type": "general-purpose",
+        "fqdn": "prod-web-01.example.com",
+        "hostname": "prod-web-01",
+        "uuid": "8a4d1e6b-c9f2-4b3a-9d1c-2e6f7a8b9c1d",
+        "ipv4": "10.0.4.55",
+        "ipv6": null,
+        "last_authenticated_results": "2024-05-18T02:11:00.000Z",
+        "last_unauthenticated_results": null,
+        "mac_address": "0a:1b:2c:3d:4e:5f",
+        "netbios_name": null,
+        "network_id": "00000000-0000-0000-0000-000000000000",
+        "operating_system": ["Ubuntu 20.04.6 LTS (Focal Fossa)"],
+        "tracked": true,
+        "tags": [
+          {"category": "Environment", "value": "production"},
+          {"category": "Criticality", "value": "high"},
+          {"category": "Exposure", "value": "internet-facing"},
+          {"category": "OwnerTeam", "value": "platform-web"}
+        ]
+      },
+      "output": "Local checks have determined that the version of sudo installed on the remote host is prior to 1.9.5p2.\n\nInstalled version : 1.8.31\nFixed version    : 1.9.5p2\n\nSudo before 1.9.5p2 contains an off-by-one error that can result in a heap-based buffer overflow, which allows privilege escalation to root via 'sudoedit -s' and a command-line argument that ends with a single backslash character. This vulnerability is known as 'Baron Samedit' (CVE-2021-3156).",
+      "plugin": {
+        "bid": [116953],
+        "canvas_package": null,
+        "checks_for_default_account": false,
+        "checks_for_malware": false,
+        "cpe": ["cpe:/a:sudo_project:sudo"],
+        "cve": ["CVE-2021-3156"],
+        "cvss3_base_score": 7.8,
+        "cvss3_temporal_score": 7.6,
+        "cvss3_temporal_vector": {
+          "exploitability": "Functional",
+          "remediation_level": "Official-fix",
+          "report_confidence": "Confirmed",
+          "raw": "E:F/RL:O/RC:C"
+        },
+        "cvss3_vector": {
+          "access_complexity": "Low",
+          "access_vector": "Local",
+          "authentication": null,
+          "availability_impact": "High",
+          "confidentiality_impact": "High",
+          "integrity_impact": "High",
+          "raw": "AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H"
+        },
+        "cvss_base_score": 7.2,
+        "cvss_temporal_score": 6.3,
+        "cvss_temporal_vector": {
+          "raw": "E:F/RL:OF/RC:C"
+        },
+        "cvss_vector": {
+          "access_complexity": "Low",
+          "access_vector": "Local",
+          "authentication": "None",
+          "availability_impact": "Complete",
+          "confidentiality_impact": "Complete",
+          "integrity_impact": "Complete",
+          "raw": "AV:L/AC:L/Au:N/C:C/I:C/A:C"
+        },
+        "description": "The remote Ubuntu 20.04 host has a package installed that is affected by a vulnerability as referenced in the USN-4705-1 advisory. Sudo before 1.9.5p2 contains an off-by-one error that can result in a heap-based buffer overflow, which allows privilege escalation to root via sudoedit -s and a command-line argument that ends with a single backslash character. (CVE-2021-3156)",
+        "exploit_available": true,
+        "exploit_framework_canvas": false,
+        "exploit_framework_core": false,
+        "exploit_framework_d2_elliot": false,
+        "exploit_framework_exploithub": false,
+        "exploit_framework_metasploit": true,
+        "exploited_by_malware": false,
+        "exploited_by_nessus": false,
+        "family": "Ubuntu Local Security Checks",
+        "family_id": 12,
+        "has_patch": true,
+        "id": 145997,
+        "in_the_news": true,
+        "modification_date": "2023-11-14T00:00:00Z",
+        "ms_bulletin": null,
+        "name": "Ubuntu 20.04 LTS : Sudo vulnerability (USN-4705-1) (Baron Samedit)",
+        "patch_publication_date": "2021-01-26T00:00:00Z",
+        "publication_date": "2021-01-27T00:00:00Z",
+        "risk_factor": "High",
+        "see_also": [
+          "https://ubuntu.com/security/notices/USN-4705-1",
+          "https://www.sudo.ws/security/advisories/unescape_overflow/"
+        ],
+        "solution": "Update the affected sudo and / or sudo-ldap packages.",
+        "stig_severity": null,
+        "synopsis": "The remote Ubuntu host is missing a security update.",
+        "type": "local",
+        "unsupported_by_vendor": false,
+        "usn": "USN-4705-1",
+        "vpr": {
+          "score": 9.5,
+          "drivers": {
+            "age_of_vuln": {"lower_bound": 731},
+            "exploit_code_maturity": "FUNCTIONAL",
+            "cvss_impact_score_predicted": false,
+            "cvss3_impact_score": 5.9,
+            "threat_intensity_last_28": "VERY_HIGH",
+            "threat_sources_last_28": ["Dark Web", "Underground Forum", "Malware"],
+            "product_coverage": "HIGH"
+          },
+          "updated": "2024-05-15T00:00:00Z"
+        },
+        "xref": ["USN:4705-1", "IAVA:2021-A-0079-S"],
+        "xrefs": [
+          {"id": "4705-1", "type": "USN"},
+          {"id": "2021-A-0079-S", "type": "IAVA"}
+        ]
+      },
+      "port": {
+        "port": 0,
+        "protocol": "TCP",
+        "service": null
+      },
+      "recast_reason": null,
+      "recast_rule_uuid": null,
+      "scan": {
+        "completed_at": "2024-05-18T02:11:23.451Z",
+        "schedule_uuid": "template-abc-123-def-456",
+        "started_at": "2024-05-18T02:04:12.000Z",
+        "uuid": "5f3a9e6c-7d2b-4a91-b8e5-1c9d3f7a2b4c"
+      },
+      "severity": "high",
+      "severity_default_id": 3,
+      "severity_id": 3,
+      "severity_modification_type": "NONE",
+      "first_found": "2024-05-18T02:11:23.451Z",
+      "last_fixed": null,
+      "last_found": "2024-05-18T02:11:23.451Z",
+      "state": "OPEN",
+      "indexed_at": "2024-05-18T02:14:00.000Z"
+    },
+    {
+      "asset": {
+        "device_type": "general-purpose",
+        "fqdn": "prod-db-01.example.com",
+        "hostname": "prod-db-01",
+        "uuid": "9b5e2f7c-d1a3-4c4b-ae2d-3f7a8b9c0e2f",
+        "ipv4": "10.0.5.22",
+        "ipv6": null,
+        "operating_system": ["Red Hat Enterprise Linux Server release 8.6"],
+        "tracked": true,
+        "tags": [
+          {"category": "Environment", "value": "production"},
+          {"category": "Criticality", "value": "critical"},
+          {"category": "Exposure", "value": "internal"},
+          {"category": "OwnerTeam", "value": "data-platform"},
+          {"category": "DataClassification", "value": "confidential"}
+        ]
+      },
+      "output": "Nessus was able to determine that a version of Apache Log4j between 2.0-beta9 and 2.15.0 is installed on the remote host.\n\nInstalled path : /opt/app/lib/log4j-core-2.14.1.jar\nInstalled version : 2.14.1\nFixed version    : 2.17.1",
+      "plugin": {
+        "cpe": ["cpe:/a:apache:log4j"],
+        "cve": ["CVE-2021-44228", "CVE-2021-45046"],
+        "cvss3_base_score": 10.0,
+        "cvss3_temporal_score": 9.5,
+        "cvss3_vector": {
+          "raw": "AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+        },
+        "cvss_base_score": 9.3,
+        "description": "Apache Log4j2 <=2.14.1 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints. An attacker who can control log messages or log message parameters can execute arbitrary code loaded from LDAP servers when message lookup substitution is enabled (CVE-2021-44228, aka Log4Shell).",
+        "exploit_available": true,
+        "exploit_framework_metasploit": true,
+        "exploited_by_malware": true,
+        "family": "Web Servers",
+        "family_id": 21,
+        "has_patch": true,
+        "id": 156032,
+        "in_the_news": true,
+        "modification_date": "2024-01-08T00:00:00Z",
+        "name": "Apache Log4j 2.x < 2.17.1 Multiple Vulnerabilities (Log4Shell)",
+        "patch_publication_date": "2021-12-10T00:00:00Z",
+        "publication_date": "2021-12-11T00:00:00Z",
+        "risk_factor": "Critical",
+        "see_also": [
+          "https://logging.apache.org/log4j/2.x/security.html",
+          "https://www.cisa.gov/uscert/apache-log4j-vulnerability-guidance"
+        ],
+        "solution": "Upgrade to Apache Log4j 2.17.1 or later.",
+        "synopsis": "A web application server running on the remote host is affected by multiple vulnerabilities.",
+        "type": "remote",
+        "vpr": {
+          "score": 10.0,
+          "drivers": {
+            "age_of_vuln": {"lower_bound": 890},
+            "exploit_code_maturity": "HIGH",
+            "cvss3_impact_score": 6.0,
+            "threat_intensity_last_28": "VERY_HIGH",
+            "threat_sources_last_28": ["Dark Web", "Malware", "Nation State"],
+            "product_coverage": "HIGH"
+          },
+          "updated": "2024-05-15T00:00:00Z"
+        },
+        "xref": ["IAVA:2021-A-0573"],
+        "xrefs": [{"id": "2021-A-0573", "type": "IAVA"}]
+      },
+      "port": {"port": 443, "protocol": "TCP", "service": "www"},
+      "scan": {
+        "completed_at": "2024-05-18T02:47:11.201Z",
+        "schedule_uuid": "template-abc-123-def-456",
+        "started_at": "2024-05-18T02:32:04.000Z",
+        "uuid": "5f3a9e6c-7d2b-4a91-b8e5-1c9d3f7a2b4c"
+      },
+      "severity": "critical",
+      "severity_default_id": 4,
+      "severity_id": 4,
+      "first_found": "2024-05-18T02:47:11.201Z",
+      "last_found": "2024-05-18T02:47:11.201Z",
+      "state": "OPEN",
+      "indexed_at": "2024-05-18T02:49:00.000Z"
+    },
+    {
+      "asset": {
+        "device_type": "general-purpose",
+        "fqdn": "dev-app-03.example.com",
+        "hostname": "dev-app-03",
+        "uuid": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+        "ipv4": "10.1.2.147",
+        "operating_system": ["Ubuntu 22.04.3 LTS (Jammy Jellyfish)"],
+        "tracked": true,
+        "tags": [
+          {"category": "Environment", "value": "development"},
+          {"category": "Criticality", "value": "low"},
+          {"category": "Exposure", "value": "internal"},
+          {"category": "OwnerTeam", "value": "app-team-3"}
+        ]
+      },
+      "output": "The remote SSH server is configured to allow either MD5 or 96-bit MAC algorithms, both of which are considered weak.\n\nThe following client-to-server Method Authentication Code (MAC) algorithms are supported :\n\n  hmac-md5\n  hmac-md5-96\n  hmac-sha1-96",
+      "plugin": {
+        "cpe": ["cpe:/a:openbsd:openssh"],
+        "cve": [],
+        "cvss3_base_score": 5.3,
+        "cvss3_vector": {"raw": "AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N"},
+        "cvss_base_score": 2.6,
+        "description": "The remote SSH server is configured to allow MD5 and 96-bit MAC algorithms. Note that this plugin only checks for the options of the SSH server and does not check for vulnerable software versions.",
+        "exploit_available": false,
+        "family": "Misc.",
+        "family_id": 2,
+        "has_patch": false,
+        "id": 71049,
+        "in_the_news": false,
+        "modification_date": "2023-03-08T00:00:00Z",
+        "name": "SSH Weak MAC Algorithms Enabled",
+        "publication_date": "2013-11-22T00:00:00Z",
+        "risk_factor": "Medium",
+        "see_also": [],
+        "solution": "Contact the vendor or consult product documentation to disable MD5 and 96-bit MAC algorithms.",
+        "synopsis": "The remote SSH server is configured to allow MD5 or 96-bit MAC algorithms.",
+        "type": "remote",
+        "vpr": {
+          "score": 4.8,
+          "drivers": {
+            "age_of_vuln": {"lower_bound": 3900},
+            "exploit_code_maturity": "UNPROVEN",
+            "cvss3_impact_score": 1.4,
+            "threat_intensity_last_28": "LOW",
+            "product_coverage": "HIGH"
+          },
+          "updated": "2024-04-01T00:00:00Z"
+        }
+      },
+      "port": {"port": 22, "protocol": "TCP", "service": "ssh"},
+      "scan": {
+        "completed_at": "2024-05-18T03:11:52.789Z",
+        "schedule_uuid": "template-abc-123-def-456",
+        "uuid": "5f3a9e6c-7d2b-4a91-b8e5-1c9d3f7a2b4c"
+      },
+      "severity": "medium",
+      "severity_default_id": 2,
+      "severity_id": 2,
+      "first_found": "2024-02-14T04:22:11.000Z",
+      "last_found": "2024-05-18T03:11:52.789Z",
+      "state": "OPEN",
+      "indexed_at": "2024-05-18T03:13:00.000Z"
+    },
+    {
+      "asset": {
+        "device_type": "general-purpose",
+        "fqdn": "prod-web-01.example.com",
+        "hostname": "prod-web-01",
+        "uuid": "8a4d1e6b-c9f2-4b3a-9d1c-2e6f7a8b9c1d",
+        "ipv4": "10.0.4.55",
+        "operating_system": ["Ubuntu 20.04.6 LTS (Focal Fossa)"],
+        "tracked": true,
+        "tags": [
+          {"category": "Environment", "value": "production"},
+          {"category": "Criticality", "value": "high"},
+          {"category": "Exposure", "value": "internet-facing"},
+          {"category": "OwnerTeam", "value": "platform-web"}
+        ]
+      },
+      "output": "The remote host is affected by a vulnerability in OpenSSL. The version installed is 1.1.1f, which is affected by CVE-2022-3602 and CVE-2022-3786.\n\nInstalled version : 1.1.1f\nFixed version    : 3.0.7",
+      "plugin": {
+        "cpe": ["cpe:/a:openssl:openssl"],
+        "cve": ["CVE-2022-3602", "CVE-2022-3786"],
+        "cvss3_base_score": 7.5,
+        "cvss3_vector": {"raw": "AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"},
+        "cvss_base_score": 5.0,
+        "description": "A buffer overrun can be triggered in X.509 certificate verification, specifically in name constraint checking. Note that this occurs after certificate chain signature verification.",
+        "exploit_available": false,
+        "family": "General",
+        "family_id": 10,
+        "has_patch": true,
+        "id": 166478,
+        "in_the_news": true,
+        "modification_date": "2023-06-14T00:00:00Z",
+        "name": "OpenSSL 3.0.0 < 3.0.7 Buffer Overrun in X.509 Certificate Verification",
+        "patch_publication_date": "2022-11-01T00:00:00Z",
+        "publication_date": "2022-11-01T00:00:00Z",
+        "risk_factor": "High",
+        "see_also": ["https://www.openssl.org/news/secadv/20221101.txt"],
+        "solution": "Upgrade to OpenSSL version 3.0.7 or later.",
+        "synopsis": "The remote host is affected by a vulnerability in OpenSSL.",
+        "type": "local",
+        "vpr": {
+          "score": 6.7,
+          "drivers": {
+            "age_of_vuln": {"lower_bound": 560},
+            "exploit_code_maturity": "PROOF_OF_CONCEPT",
+            "cvss3_impact_score": 3.6,
+            "threat_intensity_last_28": "MEDIUM"
+          },
+          "updated": "2024-05-01T00:00:00Z"
+        }
+      },
+      "port": {"port": 0, "protocol": "TCP"},
+      "scan": {
+        "completed_at": "2024-05-18T02:11:23.451Z",
+        "uuid": "5f3a9e6c-7d2b-4a91-b8e5-1c9d3f7a2b4c"
+      },
+      "severity": "high",
+      "severity_default_id": 3,
+      "severity_id": 3,
+      "first_found": "2024-05-18T02:11:23.451Z",
+      "last_found": "2024-05-18T02:11:23.451Z",
+      "state": "OPEN",
+      "indexed_at": "2024-05-18T02:14:00.000Z"
+    },
+    {
+      "asset": {
+        "device_type": "general-purpose",
+        "fqdn": "prod-web-01.example.com",
+        "hostname": "prod-web-01",
+        "uuid": "8a4d1e6b-c9f2-4b3a-9d1c-2e6f7a8b9c1d",
+        "ipv4": "10.0.4.55",
+        "operating_system": ["Ubuntu 20.04.6 LTS (Focal Fossa)"],
+        "tracked": true,
+        "tags": [
+          {"category": "Environment", "value": "production"},
+          {"category": "Criticality", "value": "high"},
+          {"category": "OwnerTeam", "value": "platform-web"}
+        ]
+      },
+      "output": "The remote SSH server is configured to permit root logins directly. This is not a security best practice — root should only be reachable through sudo from a named user account.\n\nSetting detected in /etc/ssh/sshd_config : PermitRootLogin yes",
+      "plugin": {
+        "cpe": ["cpe:/a:openbsd:openssh"],
+        "cve": [],
+        "cvss3_base_score": 5.4,
+        "cvss3_vector": {"raw": "AV:N/AC:L/PR:L/UI:N/S:U/C:L/I:L/A:N"},
+        "description": "The remote SSH service is configured to allow direct root logins, which is contrary to security hardening guides including CIS Benchmark 5.2.10 and DISA STIG SV-230222.",
+        "exploit_available": false,
+        "family": "Compliance",
+        "family_id": 34,
+        "has_patch": false,
+        "id": 21745,
+        "modification_date": "2024-02-15T00:00:00Z",
+        "name": "SSH PermitRootLogin Enabled",
+        "publication_date": "2018-04-04T00:00:00Z",
+        "risk_factor": "Medium",
+        "see_also": [],
+        "solution": "Set 'PermitRootLogin no' in /etc/ssh/sshd_config and restart the SSH service.",
+        "stig_severity": "II",
+        "synopsis": "Direct SSH login as root is enabled on the remote host.",
+        "type": "local"
+      },
+      "port": {"port": 22, "protocol": "TCP", "service": "ssh"},
+      "scan": {
+        "completed_at": "2024-05-18T02:11:23.451Z",
+        "uuid": "5f3a9e6c-7d2b-4a91-b8e5-1c9d3f7a2b4c"
+      },
+      "severity": "medium",
+      "severity_default_id": 2,
+      "severity_id": 2,
+      "first_found": "2024-04-02T09:22:11.000Z",
+      "last_found": "2024-05-18T02:11:23.451Z",
+      "state": "OPEN",
+      "indexed_at": "2024-05-18T02:14:00.000Z"
+    },
+    {
+      "asset": {
+        "device_type": "general-purpose",
+        "fqdn": "corp-file-02.example.com",
+        "hostname": "corp-file-02",
+        "uuid": "b3c4d5e6-f7a8-4b9c-8d0e-1f2a3b4c5d6e",
+        "ipv4": "10.2.3.44",
+        "operating_system": ["Microsoft Windows Server 2019 Standard"],
+        "tracked": true,
+        "tags": [
+          {"category": "Environment", "value": "production"},
+          {"category": "Criticality", "value": "high"},
+          {"category": "OwnerTeam", "value": "corp-it"}
+        ]
+      },
+      "output": "The remote Windows host is missing security update KB5027219.\n\nThis update addresses CVE-2023-32046, a Windows MSHTML Platform Elevation of Privilege vulnerability.",
+      "plugin": {
+        "cpe": ["cpe:/o:microsoft:windows_server_2019"],
+        "cve": ["CVE-2023-32046"],
+        "cvss3_base_score": 7.8,
+        "cvss3_vector": {"raw": "AV:L/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H"},
+        "cvss_base_score": 6.8,
+        "description": "The remote Windows host is missing security update KB5027219. It is, therefore, affected by an elevation of privilege vulnerability. An authenticated attacker who successfully exploited this vulnerability could gain SYSTEM privileges.",
+        "exploit_available": true,
+        "exploit_framework_metasploit": false,
+        "exploited_by_malware": true,
+        "family": "Windows : Microsoft Bulletins",
+        "family_id": 14,
+        "has_patch": true,
+        "id": 177541,
+        "in_the_news": false,
+        "modification_date": "2024-01-11T00:00:00Z",
+        "ms_bulletin": "KB5027219",
+        "name": "Windows 10 / Server 2019 June 2023 Security Update",
+        "patch_publication_date": "2023-06-13T00:00:00Z",
+        "publication_date": "2023-06-13T00:00:00Z",
+        "risk_factor": "High",
+        "see_also": ["https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-32046"],
+        "solution": "Apply Security Update KB5027219.",
+        "synopsis": "The remote Windows host is affected by an elevation of privilege vulnerability.",
+        "type": "local",
+        "vpr": {
+          "score": 8.4,
+          "drivers": {
+            "age_of_vuln": {"lower_bound": 340},
+            "exploit_code_maturity": "FUNCTIONAL",
+            "cvss3_impact_score": 5.9,
+            "threat_intensity_last_28": "HIGH",
+            "threat_sources_last_28": ["Dark Web", "Malware"],
+            "product_coverage": "HIGH"
+          },
+          "updated": "2024-05-10T00:00:00Z"
+        },
+        "xref": ["MSKB:5027219"],
+        "xrefs": [{"id": "5027219", "type": "MSKB"}]
+      },
+      "port": {"port": 0, "protocol": "TCP"},
+      "scan": {
+        "completed_at": "2024-05-18T04:22:11.033Z",
+        "uuid": "5f3a9e6c-7d2b-4a91-b8e5-1c9d3f7a2b4c"
+      },
+      "severity": "high",
+      "severity_default_id": 3,
+      "severity_id": 3,
+      "first_found": "2024-05-18T04:22:11.033Z",
+      "last_found": "2024-05-18T04:22:11.033Z",
+      "state": "OPEN",
+      "indexed_at": "2024-05-18T04:24:00.000Z"
+    }
+  ]
+}

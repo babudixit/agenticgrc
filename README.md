@@ -144,6 +144,21 @@ processed/written/failed, duration, run ID) via `structlog`. The full
 Rev 5 catalog (~1,200 controls including enhancements) loads in a couple of
 seconds.
 
+## Normalizing Tenable findings (Deliverable 4)
+
+```powershell
+python -m grc_agent.normalizers.tenable --input path\to\tenable_export.json --output data\tenable_findings.jsonl
+```
+
+Accepts either a Tenable export shaped as `{"findings": [...]}` or a bare
+JSON array of finding objects. Each finding is normalized into a
+`UnifiedFinding` — severity is mapped onto the canonical scale while the
+vendor's own rating is preserved verbatim (`vendor_severity`), CVEs/CPEs are
+validated and normalized, and the per-host scan `output` text is folded into
+`description` alongside Tenable's generic plugin description. Malformed
+records are skipped (and reported in the run's `IngestionResult.errors`)
+rather than aborting the whole run.
+
 ## Delivery roadmap (Phase 1)
 
 Built incrementally, each deliverable working end-to-end before the next
@@ -161,8 +176,10 @@ begins:
    end-to-end against NIST's real Rev 5 catalog (1,196 controls, 4,383
    relationships) loaded into a live Neo4j container, including a
    reload-is-idempotent check.
-4. **First vendor normalizer** — `normalizers/tenable.py` (Tenable finding →
-   `UnifiedFinding`).
+4. **First vendor normalizer** ✅ *(this deliverable)* — `normalizers/tenable.py`
+   (Tenable finding → `UnifiedFinding`). Verified against a real Tenable.io
+   export (6 findings spanning single-CVE, multi-CVE, and zero-CVE/
+   compliance-check patterns across critical/high/medium severities).
 5. **First agent** — `agents/mapping_agent.py`, a LangGraph state machine that
    maps a `UnifiedFinding` to controls, ATT&CK techniques, and confidence
    scores via Neo4j traversal with ChromaDB semantic fallback.
