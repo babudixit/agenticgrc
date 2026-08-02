@@ -46,7 +46,10 @@ Dev/
 │   ├── api/                  # FastAPI endpoints (built after agents work)
 │   └── config/                # pydantic-settings configuration
 └── tests/
+    ├── schemas/
+    ├── tools/
     ├── ingesters/
+    ├── loaders/
     ├── normalizers/
     └── agents/
 ```
@@ -121,19 +124,43 @@ python -m grc_agent.config.settings
   code (CLI-facing summaries are the exception).
 - No secrets in code; `.env` is git-ignored, `.env.example` is the template.
 
+## Ingesting & loading NIST SP 800-53 (Deliverable 3)
+
+```powershell
+# 1. Fetch the OSCAL catalog from NIST's GitHub-hosted source and parse it
+#    into UnifiedControl JSON-Lines (defaults shown; --source also accepts a
+#    local file path, e.g. for air-gapped/offline use per NFR-06).
+python -m grc_agent.ingesters.nist_sp800_53 --output data/sp800_53.jsonl
+
+# 2. Load those records into Neo4j as (:Control) nodes, wired up with
+#    RELATES_TO edges (cross-references) and ENHANCES edges (control
+#    enhancements, e.g. AC-2(1) -[:ENHANCES]-> AC-2). Idempotent — safe to
+#    re-run after every refresh.
+python -m grc_agent.loaders.neo4j_loader --input data/sp800_53.jsonl
+```
+
+Both commands emit a structured `IngestionResult` summary (records
+processed/written/failed, duration, run ID) via `structlog`. The full
+Rev 5 catalog (~1,200 controls including enhancements) loads in a couple of
+seconds.
+
 ## Delivery roadmap (Phase 1)
 
 Built incrementally, each deliverable working end-to-end before the next
 begins:
 
-1. **Foundation** *(this deliverable)* — project skeleton, tooling config,
-   Docker Compose for Neo4j, environment handling.
-2. **Schemas** — `UnifiedControl`, `UnifiedVulnerability`, `UnifiedAsset`,
+1. **Foundation** ✅ — project skeleton, tooling config, Docker Compose for
+   Neo4j, environment handling.
+2. **Schemas** ✅ — `UnifiedControl`, `UnifiedVulnerability`, `UnifiedAsset`,
    `UnifiedFinding`, `SourceSystem`, `IngestionResult`, with full validation
    and round-trip test coverage.
-3. **First ingester + loader** — `ingesters/nist_sp800_53.py` (OSCAL JSON →
-   `UnifiedControl` → `sp800_53.jsonl`) and `loaders/neo4j_loader.py`
-   (JSON-Lines → `(:Control)` nodes and edges).
+3. **First ingester + loader** ✅ *(this deliverable)* —
+   `ingesters/nist_sp800_53.py` (OSCAL JSON → `UnifiedControl` →
+   `sp800_53.jsonl`) and `loaders/neo4j_loader.py` (JSON-Lines →
+   `(:Control)` nodes with `RELATES_TO`/`ENHANCES` edges). Verified
+   end-to-end against NIST's real Rev 5 catalog (1,196 controls, 4,383
+   relationships) loaded into a live Neo4j container, including a
+   reload-is-idempotent check.
 4. **First vendor normalizer** — `normalizers/tenable.py` (Tenable finding →
    `UnifiedFinding`).
 5. **First agent** — `agents/mapping_agent.py`, a LangGraph state machine that
