@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Weakness_Catalog xmlns="http://cwe.mitre.org/cwe-7" xmlns:xhtml="http://www.w3.org/1999/xhtml" Name="CWE" Version="4.20" Date="2026-04-30">
+  <Weaknesses>
+    <Weakness ID="79" Name="Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')" Abstraction="Base" Structure="Simple" Status="Stable">
+      <Description>The product does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users.</Description>
+      <Extended_Description>
+        <xhtml:p>There are many variants of cross-site scripting, characterized by a variety of terms or involving different attack topologies.</xhtml:p>
+      </Extended_Description>
+      <Related_Weaknesses>
+        <Related_Weakness Nature="ChildOf" CWE_ID="74" View_ID="1000" Ordinal="Primary"/>
+        <Related_Weakness Nature="ChildOf" CWE_ID="74" View_ID="1003" Ordinal="Primary"/>
+        <Related_Weakness Nature="CanPrecede" CWE_ID="494" View_ID="1000"/>
+        <Related_Weakness Nature="PeerOf" CWE_ID="352" View_ID="1000"/>
+      </Related_Weaknesses>
+    </Weakness>
+    <Weakness ID="89" Name="Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')" Abstraction="Base" Structure="Simple" Status="Stable">
+      <Description>The product constructs all or part of an SQL command using externally-influenced input, but does not neutralize special elements.</Description>
+      <Related_Weaknesses>
+        <Related_Weakness Nature="ChildOf" CWE_ID="943" View_ID="1000" Ordinal="Primary"/>
+      </Related_Weaknesses>
+    </Weakness>
+    <Weakness ID="20" Name="Improper Input Validation" Abstraction="Class" Structure="Simple" Status="Stable">
+      <Description>The product does not validate or incorrectly validates input that can affect the control flow or data flow of a program.</Description>
+    </Weakness>
+    <Weakness ID="1187" Name="DEPRECATED: Use of Uninitialized Resource" Abstraction="Base" Structure="Simple" Status="Deprecated">
+      <Description>This entry has been deprecated.</Description>
+    </Weakness>
+  </Weaknesses>
+</Weakness_Catalog>

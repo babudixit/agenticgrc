@@ -95,3 +95,47 @@ def source_system_data() -> dict[str, Any]:
         "vendor": "Tenable",
         "api_base_url": "https://cloud.tenable.com",
     }
+
+
+@pytest.fixture
+def weakness_data() -> dict[str, Any]:
+    return {
+        "weakness_id": "CWE-79",
+        "name": "Improper Neutralization of Input During Web Page Generation "
+        "('Cross-site Scripting')",
+        "description": "The product does not neutralize or incorrectly neutralizes "
+        "user-controllable input before it is placed in output that is used as a web "
+        "page.",
+        "extended_description": "There are many variants of cross-site scripting.",
+        "abstraction": "Base",
+        "status": "Stable",
+        "related_weakness_ids": ["CWE-74"],
+        "raw_source": {"ID": "79", "Name": "Cross-site Scripting"},
+    }
+
+
+@pytest.fixture
+def attack_technique_data() -> dict[str, Any]:
+    return {
+        "technique_id": "T1055.011",
+        "name": "Extra Window Memory Injection",
+        "description": "Adversaries may inject malicious code into process via Extra "
+        "Window Memory (EWM).",
+        "tactics": ["defense-evasion", "privilege-escalation"],
+        "is_subtechnique": True,
+        "parent_technique_id": "T1055",
+        "platforms": ["Windows"],
+        "raw_source": {"id": "attack-pattern--0042a9f5", "name": "Extra Window Memory Injection"},
+    }
+
+
+@pytest.fixture
+def attack_control_mapping_data() -> dict[str, Any]:
+    return {
+        "technique_id": "T1556.009",
+        "control_id": "AC-2",
+        "control_framework": "NIST_SP_800-53_r5",
+        "mapping_type": "mitigates",
+        "comments": "Account Management supports monitoring for unusual activity.",
+        "raw_source": {"attack_object_id": "T1556.009", "capability_id": "AC-02"},
+    }

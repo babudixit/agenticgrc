@@ -1,0 +1,44 @@
+{
+  "metadata": {
+    "mapping_version": "3.0.0",
+    "technology_domain": "enterprise",
+    "attack_version": "16.1",
+    "mapping_framework": "nist_800_53",
+    "mapping_framework_version": "rev5"
+  },
+  "mapping_objects": [
+    {
+      "capability_id": "CM-03",
+      "capability_description": "Configuration Change Control",
+      "mapping_type": "mitigates",
+      "attack_object_id": "T1666",
+      "attack_object_name": "Modify Cloud Resource Hierarchy",
+      "capability_group": "CM",
+      "comments": "Monitoring and reviewing changes allows for detection of unauthorized changes.",
+      "references": [],
+      "status": "complete"
+    },
+    {
+      "capability_id": "AC-02",
+      "capability_description": "Account Management",
+      "mapping_type": "mitigates",
+      "attack_object_id": "T1556.009",
+      "attack_object_name": "Conditional Access Policies",
+      "capability_group": "AC",
+      "comments": null,
+      "references": [],
+      "status": "complete"
+    },
+    {
+      "capability_id": null,
+      "capability_description": null,
+      "mapping_type": null,
+      "attack_object_id": "T1496.002",
+      "attack_object_name": "Bandwidth Hijacking",
+      "capability_group": null,
+      "comments": "no mitigations in att&ck",
+      "references": [],
+      "status": "non_mappable"
+    }
+  ]
+}

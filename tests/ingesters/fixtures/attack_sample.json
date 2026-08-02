@@ -1,0 +1,104 @@
+{
+  "type": "bundle",
+  "id": "bundle--test-fixture",
+  "spec_version": "2.1",
+  "objects": [
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000000001",
+      "name": "Process Discovery",
+      "description": "Adversaries may attempt to get information about running processes on a system.",
+      "x_mitre_is_subtechnique": false,
+      "x_mitre_deprecated": false,
+      "revoked": false,
+      "x_mitre_platforms": ["Windows", "Linux", "macOS"],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "discovery"}
+      ],
+      "external_references": [
+        {"source_name": "mitre-attack", "url": "https://attack.mitre.org/techniques/T1057", "external_id": "T1057"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000000002",
+      "name": "Process Injection",
+      "description": "Adversaries may inject code into processes in order to evade process-based defenses.",
+      "x_mitre_is_subtechnique": false,
+      "x_mitre_deprecated": false,
+      "revoked": false,
+      "x_mitre_platforms": ["Windows"],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "defense-evasion"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "privilege-escalation"}
+      ],
+      "external_references": [
+        {"source_name": "mitre-attack", "url": "https://attack.mitre.org/techniques/T1055", "external_id": "T1055"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000000003",
+      "name": "Extra Window Memory Injection",
+      "description": "Adversaries may inject malicious code into process via Extra Window Memory (EWM).",
+      "x_mitre_is_subtechnique": true,
+      "x_mitre_deprecated": false,
+      "revoked": false,
+      "x_mitre_platforms": ["Windows"],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "defense-evasion"},
+        {"kill_chain_name": "mitre-attack", "phase_name": "privilege-escalation"}
+      ],
+      "external_references": [
+        {"source_name": "mitre-attack", "url": "https://attack.mitre.org/techniques/T1055/011", "external_id": "T1055.011"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000000004",
+      "name": "Indicator Removal from Tools (old, revoked)",
+      "description": "This technique was revoked and merged into another.",
+      "x_mitre_is_subtechnique": false,
+      "x_mitre_deprecated": false,
+      "revoked": true,
+      "x_mitre_platforms": ["Windows"],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "defense-evasion"}
+      ],
+      "external_references": [
+        {"source_name": "mitre-attack", "url": "https://attack.mitre.org/techniques/T1066", "external_id": "T1066"}
+      ]
+    },
+    {
+      "type": "attack-pattern",
+      "id": "attack-pattern--00000000-0000-0000-0000-000000000005",
+      "name": "Deprecated Technique",
+      "description": "This technique has been deprecated.",
+      "x_mitre_is_subtechnique": false,
+      "x_mitre_deprecated": true,
+      "revoked": false,
+      "x_mitre_platforms": [],
+      "kill_chain_phases": [
+        {"kill_chain_name": "mitre-attack", "phase_name": "discovery"}
+      ],
+      "external_references": [
+        {"source_name": "mitre-attack", "url": "https://attack.mitre.org/techniques/T9999", "external_id": "T9999"}
+      ]
+    },
+    {
+      "type": "x-mitre-tactic",
+      "id": "x-mitre-tactic--00000000-0000-0000-0000-00000000000a",
+      "name": "Discovery",
+      "external_references": [
+        {"source_name": "mitre-attack", "url": "https://attack.mitre.org/tactics/TA0007", "external_id": "TA0007"}
+      ]
+    },
+    {
+      "type": "relationship",
+      "id": "relationship--00000000-0000-0000-0000-00000000000b",
+      "relationship_type": "subtechnique-of",
+      "source_ref": "attack-pattern--00000000-0000-0000-0000-000000000003",
+      "target_ref": "attack-pattern--00000000-0000-0000-0000-000000000002"
+    }
+  ]
+}

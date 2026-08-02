@@ -19,8 +19,10 @@ Specification v2.0) for the full spec.
   LLM calls are confined to the compliance-mapping and finding-synthesis
   agents.
 - **Unified Pydantic schemas as the internal contract.** `UnifiedControl`,
-  `UnifiedVulnerability`, `UnifiedAsset`, `UnifiedFinding`. Vendor-specific
-  field names never leak past a normalizer boundary.
+  `UnifiedVulnerability`, `UnifiedAsset`, `UnifiedFinding`, `UnifiedWeakness`
+  (CWE), `UnifiedAttackTechnique` (MITRE ATT&CK), `AttackControlMapping`
+  (technique→control edges). Vendor-specific field names never leak past a
+  normalizer boundary.
 - **JSON-Lines as the interchange format** between ingesters/normalizers and
   loaders, keeping ingestion and storage independently testable.
 - **LangGraph** for agent orchestration; Neo4j Cypher, ChromaDB retrieval, KEV
@@ -38,7 +40,7 @@ Dev/
 ├── conftest.py             # Repo-wide pytest hooks
 ├── grc_agent/               # The installable package
 │   ├── schemas/             # Pydantic models — UnifiedControl, UnifiedFinding, etc.
-│   ├── ingesters/           # One module per reference-data source (NIST, MITRE, CISA, EPSS...)
+│   ├── ingesters/           # One module per reference-data source (NIST, MITRE CWE/ATT&CK, NVD, CTID...)
 │   ├── normalizers/         # One module per scanner/CSPM/SIEM vendor (Tenable first)
 │   ├── loaders/             # JSON-Lines → Neo4j / ChromaDB
 │   ├── agents/               # LangGraph state machines (mapping, then synthesis)
@@ -159,6 +161,65 @@ validated and normalized, and the per-host scan `output` text is folded into
 records are skipped (and reported in the run's `IngestionResult.errors`)
 rather than aborting the whole run.
 
+## Ingesting the CVE/CWE/ATT&CK reference graph (Deliverable 5 prep)
+
+Before the mapping agent can traverse CVE→CWE→ATT&CK→Controls, that whole
+chain needs to exist in Neo4j. Four ingesters build it, each independently
+runnable and idempotent:
+
+```powershell
+# CWE catalog -> UnifiedWeakness (~970 weaknesses, a few seconds)
+python -m grc_agent.ingesters.mitre_cwe --output data/cwe.jsonl
+
+# ATT&CK Enterprise techniques/sub-techniques/tactics -> UnifiedAttackTechnique
+# (~700 objects; revoked/deprecated techniques are excluded)
+python -m grc_agent.ingesters.mitre_attack --output data/attack_techniques.jsonl
+
+# CTID's ATT&CK-to-NIST-800-53-Rev5 "mitigates" mappings -> AttackControlMapping
+# (~5,300 mappings; closes the ATT&CK->Controls hop)
+python -m grc_agent.ingesters.ctid_attack_control_mappings --output data/attack_control_mappings.jsonl
+
+# NVD CVEs, bulk by publication date range -> UnifiedVulnerability
+# (chunks the range into NVD's 120-day API windows automatically; an
+# NVD_API_KEY in .env raises the rate limit from 5 to 50 requests/30s)
+python -m grc_agent.ingesters.nist_nvd --start-date 2024-08-02 --end-date 2026-08-02 --output data/nvd_cves.jsonl
+```
+
+Then load each JSON-Lines file with `neo4j_loader.py`'s `--record-type` flag
+(the loader was extended in Deliverable 5 from Control-only to every node
+type below; loading order doesn't matter — edges are created with a
+node-existence-checking `MATCH`, so a CVE ingested before its CWE, or a
+mapping loaded before its technique, simply creates the node now and the
+edge on the next reload):
+
+```powershell
+python -m grc_agent.loaders.neo4j_loader --input data/cwe.jsonl --record-type weakness
+python -m grc_agent.loaders.neo4j_loader --input data/attack_techniques.jsonl --record-type attack_technique
+python -m grc_agent.loaders.neo4j_loader --input data/attack_control_mappings.jsonl --record-type attack_control_mapping
+python -m grc_agent.loaders.neo4j_loader --input data/nvd_cves.jsonl --record-type vulnerability
+```
+
+Verified end-to-end against real data in a live Neo4j container:
+
+| Label / relationship | Count |
+| --- | --- |
+| `(:Vulnerability)` (CVEs, last 2 years) | 113,648 |
+| `(:Control)` | 1,196 |
+| `(:Weakness)` (CWEs) | 969 |
+| `(:AttackTechnique)` | 697 |
+| `[:MAPS_TO]` (Vulnerability→Weakness, AttackTechnique→Control) | 127,273 |
+| `[:RELATES_TO]` | 4,870 |
+| `[:ENHANCES]` | 872 |
+
+A sample traversal confirms the chain works end-to-end, e.g.
+`CVE-2026-48760 -[:MAPS_TO]-> CWE-1007`, and separately
+`T1055.011 (Extra Window Memory Injection) -[:MAPS_TO {mapping_type:
+"mitigates"}]-> SC-7 (Boundary Protection)`. Note there is intentionally no
+direct `(:Weakness)-->(:AttackTechnique)` edge — per an explicit scope
+decision, that hop has no reliable public mapping (CWE and ATT&CK are
+maintained independently) and is left to the mapping agent's ChromaDB
+semantic-search fallback rather than an unreliable CAPEC bridge.
+
 ## Delivery roadmap (Phase 1)
 
 Built incrementally, each deliverable working end-to-end before the next
@@ -180,9 +241,18 @@ begins:
    (Tenable finding → `UnifiedFinding`). Verified against a real Tenable.io
    export (6 findings spanning single-CVE, multi-CVE, and zero-CVE/
    compliance-check patterns across critical/high/medium severities).
-5. **First agent** — `agents/mapping_agent.py`, a LangGraph state machine that
-   maps a `UnifiedFinding` to controls, ATT&CK techniques, and confidence
-   scores via Neo4j traversal with ChromaDB semantic fallback.
+5. **First agent** 🚧 *(reference data ready, agent in progress)* —
+   `agents/mapping_agent.py`, a LangGraph state machine that maps a
+   `UnifiedFinding` to controls, ATT&CK techniques, and confidence scores via
+   Neo4j traversal with ChromaDB semantic fallback. The CVE→CWE→ATT&CK→
+   Controls graph it will query is fully built: `ingesters/mitre_cwe.py`,
+   `ingesters/mitre_attack.py`, `ingesters/nist_nvd.py`, and
+   `ingesters/ctid_attack_control_mappings.py` are ingested and loaded (see
+   above) — `UnifiedWeakness`, `UnifiedAttackTechnique`, and
+   `AttackControlMapping` were added to the schema layer to support them.
+   Still to build: the LangGraph state machine itself, its Neo4j
+   Cypher/ChromaDB tool wrappers, and the ChromaDB semantic-search fallback
+   for the CWE→ATT&CK hop.
 
 Deferred beyond these five: the synthesis agent, additional vendor
 normalizers, the FastAPI layer, and the frontend/UI (Phase 3+).

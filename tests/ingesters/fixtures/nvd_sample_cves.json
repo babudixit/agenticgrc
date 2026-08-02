@@ -1,0 +1,87 @@
+[
+  {
+    "id": "CVE-2024-21732",
+    "sourceIdentifier": "cve@mitre.org",
+    "published": "2024-01-01T08:15:36.087",
+    "lastModified": "2024-06-17T07:10:02.103",
+    "vulnStatus": "Modified",
+    "descriptions": [
+      {"lang": "en", "value": "FlyCms through abbaa5a allows XSS via the permission management feature."},
+      {"lang": "es", "value": "FlyCms a traves de abbaa5a permite XSS."}
+    ],
+    "metrics": {
+      "cvssMetricV31": [
+        {
+          "source": "nvd@nist.gov",
+          "type": "Primary",
+          "cvssData": {"version": "3.1", "baseScore": 6.1, "baseSeverity": "MEDIUM"}
+        },
+        {
+          "source": "other@example.com",
+          "type": "Secondary",
+          "cvssData": {"version": "3.1", "baseScore": 5.4, "baseSeverity": "MEDIUM"}
+        }
+      ]
+    },
+    "weaknesses": [
+      {"source": "nvd@nist.gov", "type": "Primary", "description": [{"lang": "en", "value": "CWE-79"}]},
+      {"source": "other", "type": "Secondary", "description": [{"lang": "en", "value": "CWE-79"}]}
+    ],
+    "configurations": [
+      {
+        "nodes": [
+          {
+            "operator": "OR",
+            "negate": false,
+            "cpeMatch": [
+              {"vulnerable": true, "criteria": "cpe:2.3:a:flycms_project:flycms:*:*:*:*:*:*:*:*"}
+            ]
+          }
+        ]
+      }
+    ],
+    "references": [
+      {"url": "https://github.com/Ghostfox2003/cms/blob/main/1.md", "source": "cve@mitre.org"},
+      {"url": "https://github.com/Ghostfox2003/cms/blob/main/1.md", "source": "af854a3a"}
+    ]
+  },
+  {
+    "id": "CVE-2003-0001",
+    "sourceIdentifier": "cve@mitre.org",
+    "published": "2003-02-05T05:00:00.000",
+    "lastModified": "2018-10-30T16:26:19.937",
+    "vulnStatus": "Analyzed",
+    "descriptions": [
+      {"lang": "en", "value": "Old-style vulnerability with only a CVSS v2 score."}
+    ],
+    "metrics": {
+      "cvssMetricV2": [
+        {
+          "source": "nvd@nist.gov",
+          "type": "Primary",
+          "cvssData": {"version": "2.0", "baseScore": 5.0},
+          "baseSeverity": "MEDIUM"
+        }
+      ]
+    },
+    "weaknesses": [],
+    "configurations": [],
+    "references": []
+  },
+  {
+    "id": "CVE-2024-99999",
+    "sourceIdentifier": "cve@mitre.org",
+    "published": "2024-03-10T00:00:00.000",
+    "lastModified": "2024-03-10T00:00:00.000",
+    "vulnStatus": "Received",
+    "descriptions": [
+      {"lang": "en", "value": "Minimal record with an unresolved CWE placeholder."}
+    ],
+    "metrics": {},
+    "weaknesses": [
+      {"source": "nvd@nist.gov", "type": "Primary", "description": [{"lang": "en", "value": "NVD-CWE-noinfo"}]}
+    ],
+    "configurations": [],
+    "references": []
+  }
+]

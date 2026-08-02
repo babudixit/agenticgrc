@@ -25,6 +25,7 @@ dependencies = [
     "structlog>=24.1",
     "neo4j>=5.20", # official Bolt driver — spec §7.3
     "requests>=2.32", # HTTP for reference-data APIs — spec §7.8
+    "anthropic>=0.40", # Claude via the Anthropic Python SDK — spec's chosen LLM client
 ]
 
 [project.optional-dependencies]
