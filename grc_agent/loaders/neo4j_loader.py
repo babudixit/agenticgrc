@@ -21,6 +21,8 @@ loading order across the four ingesters never matters:
   - `(:Weakness)-[:RELATES_TO]->(:Weakness)`            — CWE View-1000 hierarchy
   - `(:Vulnerability)-[:MAPS_TO]->(:Weakness)`          — CVE's associated CWE(s)
   - `(:AttackTechnique)-[:MAPS_TO]->(:Control)`         — CTID mitigates mapping
+  - `(:Control)-[:MAPS_TO]->(:Control)`                 — cross-framework crosswalks
+                                                         (CSF/800-171/CIS -> 800-53)
 
 Every "load nodes then load edges" pass follows the same two-phase shape:
   1. UNWIND-batched MERGE of every node.
@@ -47,6 +49,7 @@ from pydantic import BaseModel
 from grc_agent.config.settings import get_settings
 from grc_agent.schemas import (
     AttackControlMapping,
+    ControlControlMapping,
     IngestionResult,
     UnifiedAttackTechnique,
     UnifiedControl,
@@ -197,6 +200,17 @@ SET r.mapping_type = pair.mapping_type,
     r.loader_run_id = $loader_run_id
 """
 
+_CONTROL_CONTROL_MAPS_TO_QUERY = """
+UNWIND $pairs AS pair
+MATCH (a:Control {uid: pair.source_uid})
+MATCH (b:Control {uid: pair.target_uid})
+MERGE (a)-[r:MAPS_TO]->(b)
+SET r.mapping_type = pair.mapping_type,
+    r.confidence = pair.confidence,
+    r.comments = pair.comments,
+    r.loader_run_id = $loader_run_id
+"""
+
 
 def _uid(framework: str, control_id: str) -> str:
     return f"{framework}:{control_id}"
@@ -291,6 +305,16 @@ def _mapping_to_edge_params(mapping: AttackControlMapping) -> dict[str, Any]:
         "technique_id": mapping.technique_id,
         "control_uid": _uid(mapping.control_framework.value, mapping.control_id),
         "mapping_type": mapping.mapping_type,
+        "comments": mapping.comments,
+    }
+
+
+def _control_control_mapping_to_edge_params(mapping: ControlControlMapping) -> dict[str, Any]:
+    return {
+        "source_uid": _uid(mapping.source_framework.value, mapping.source_control_id),
+        "target_uid": _uid(mapping.target_framework.value, mapping.target_control_id),
+        "mapping_type": mapping.mapping_type,
+        "confidence": mapping.confidence,
         "comments": mapping.comments,
     }
 
@@ -540,6 +564,47 @@ def load_attack_control_mappings(
     return result
 
 
+def load_control_control_mappings(
+    mappings: Iterable[ControlControlMapping],
+    *,
+    driver: Driver,
+    database: str,
+    loader_run_id: str,
+    batch_size: int = DEFAULT_BATCH_SIZE,
+) -> IngestionResult:
+    """Wire up Control->Control MAPS_TO edges for cross-framework crosswalks
+    (CSF->800-53, 800-171->800-53, CIS->800-53). Creates no nodes of its own —
+    both endpoints must already exist from prior `load_controls` runs of the
+    corresponding framework catalogs.
+    """
+    result = IngestionResult(
+        source_name="neo4j_loader:control_control_mappings", run_id=loader_run_id
+    )
+
+    edge_params = [_control_control_mapping_to_edge_params(m) for m in mappings]
+    relationships_created = 0
+    for batch in _chunks(edge_params, batch_size):
+        _, summary, _ = driver.execute_query(
+            _CONTROL_CONTROL_MAPS_TO_QUERY,
+            pairs=batch,
+            loader_run_id=loader_run_id,
+            database_=database,
+        )
+        relationships_created += summary.counters.relationships_created
+        result.record_success(count=len(batch))
+
+    result.finish()
+    logger.info(
+        "neo4j_load_complete",
+        record_type="control_control_mapping",
+        run_id=result.run_id,
+        mappings_attempted=result.records_written,
+        relationships_created=relationships_created,
+        duration_seconds=result.duration_seconds,
+    )
+    return result
+
+
 #: One entry per `--record-type`: which schema to parse the input file as,
 #: which loader function to hand the parsed records to, and the noun used in
 #: the CLI's success message.
@@ -549,6 +614,11 @@ _RECORD_TYPE_REGISTRY: dict[str, tuple[type[BaseModel], Any, str]] = {
     "attack_technique": (UnifiedAttackTechnique, load_attack_techniques, "techniques"),
     "vulnerability": (UnifiedVulnerability, load_vulnerabilities, "CVEs"),
     "attack_control_mapping": (AttackControlMapping, load_attack_control_mappings, "mappings"),
+    "control_control_mapping": (
+        ControlControlMapping,
+        load_control_control_mappings,
+        "crosswalk mappings",
+    ),
 }
 
 

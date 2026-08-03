@@ -23,6 +23,9 @@ htmlcov/
 data/
 *.jsonl
 
+# Ad-hoc research downloads (OSCAL catalogs, crosswalk spreadsheets, etc.)
+.tmp_research/
+
 # Neo4j / Docker volumes bind-mounted locally (if any)
 neo4j_data/
 neo4j_logs/

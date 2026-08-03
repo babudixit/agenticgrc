@@ -1,0 +1,117 @@
+{
+  "catalog": {
+    "uuid": "11111111-1111-1111-1111-111111111111",
+    "metadata": {
+      "title": "Electronic Version of NIST Cybersecurity Framework 2.0",
+      "version": "1.2.0",
+      "oscal-version": "v1.2.2"
+    },
+    "groups": [
+      {
+        "id": "GV",
+        "class": "function",
+        "title": "GOVERN",
+        "props": [
+          { "name": "label", "value": "GOVERN (GV)" }
+        ],
+        "controls": [
+          {
+            "id": "GV.OC",
+            "class": "category",
+            "title": "Organizational Context",
+            "props": [
+              { "name": "label", "value": "Organizational Context (GV.OC)" }
+            ],
+            "parts": [
+              {
+                "id": "GV.OC_statement",
+                "name": "statement",
+                "prose": "The circumstances surrounding the organization's cybersecurity risk management decisions are understood"
+              }
+            ],
+            "controls": [
+              {
+                "id": "GV.OC-01",
+                "class": "subcategory",
+                "title": "GV.OC-01",
+                "props": [
+                  { "name": "label", "value": "GV.OC-01" }
+                ],
+                "links": [
+                  { "href": "#GV.OC-05", "rel": "related" }
+                ],
+                "parts": [
+                  {
+                    "id": "GV.OC-01_statement",
+                    "name": "statement",
+                    "prose": "The organizational mission is understood and informs cybersecurity risk management"
+                  },
+                  {
+                    "id": "GV.OC-01.001",
+                    "name": "example",
+                    "prose": "Share the organization's mission to provide a basis for identifying risks"
+                  }
+                ]
+              },
+              {
+                "id": "GV.OC-05",
+                "class": "subcategory",
+                "title": "GV.OC-05",
+                "props": [
+                  { "name": "label", "value": "GV.OC-05" }
+                ],
+                "parts": [
+                  {
+                    "id": "GV.OC-05_statement",
+                    "name": "statement",
+                    "prose": "Outcomes, capabilities, and services that the organization depends on are understood and communicated"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "ID",
+        "class": "function",
+        "title": "IDENTIFY",
+        "props": [
+          { "name": "label", "value": "IDENTIFY (ID)" }
+        ],
+        "controls": [
+          {
+            "id": "ID.BE",
+            "class": "category",
+            "title": "Business Environment",
+            "props": [
+              { "name": "label", "value": "Business Environment (ID.BE)" },
+              { "name": "status", "value": "withdrawn" }
+            ],
+            "controls": [
+              {
+                "id": "ID.BE-01",
+                "class": "subcategory",
+                "title": "ID.BE-01",
+                "props": [
+                  { "name": "label", "value": "ID.BE-01" },
+                  { "name": "status", "value": "withdrawn" }
+                ],
+                "links": [
+                  { "href": "GV.OC-05", "rel": "incorporated_into" }
+                ],
+                "parts": [
+                  {
+                    "id": "ID.BE-01_statement",
+                    "name": "statement",
+                    "prose": "The organization's role in the supply chain is identified and communicated"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

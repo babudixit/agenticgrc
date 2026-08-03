@@ -1,0 +1,93 @@
+{
+  "catalog": {
+    "uuid": "22222222-2222-2222-2222-222222222222",
+    "metadata": {
+      "title": "Electronic (OSCAL) Version of Protecting Controlled Unclassified Information in Nonfederal Systems and Organizations",
+      "version": "1.1.0"
+    },
+    "groups": [
+      {
+        "id": "SP_800_171_03.01",
+        "class": "family",
+        "title": "Access Control",
+        "props": [
+          { "name": "sort-id", "value": "03.01" },
+          { "name": "label", "value": "Access Control (03.01)" }
+        ],
+        "controls": [
+          {
+            "id": "SP_800_171_03.01.01",
+            "class": "requirement",
+            "title": "Account Management",
+            "params": [
+              {
+                "id": "A.03.01.01.ODP.01",
+                "label": "time period",
+                "guidelines": [
+                  { "prose": "the time period for account inactivity before disabling is defined." }
+                ]
+              }
+            ],
+            "props": [
+              { "name": "sort-id", "value": "03.01.01" },
+              { "name": "label", "value": "Account Management (03.01.01)" }
+            ],
+            "links": [
+              { "href": "#13c67bb0-9c04-442b-8c7f-0e4f55f995a5", "rel": "reference" }
+            ],
+            "parts": [
+              {
+                "id": "SP_800_171_03.01.01_smt",
+                "name": "statement",
+                "prose": "Manage system accounts, group memberships, privileges, workflow, notifications, deactivations, and authorizations."
+              }
+            ]
+          },
+          {
+            "id": "SP_800_171_03.01.02",
+            "class": "requirement",
+            "title": "Access Enforcement",
+            "props": [
+              { "name": "sort-id", "value": "03.01.02" },
+              { "name": "label", "value": "Access Enforcement (03.01.02)" }
+            ],
+            "parts": [
+              {
+                "id": "SP_800_171_03.01.02_smt",
+                "name": "statement",
+                "prose": "Enforce approved authorizations for logical access to CUI and system resources."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "SP_800_171_03.05",
+        "class": "family",
+        "title": "Identification and Authentication",
+        "props": [
+          { "name": "sort-id", "value": "03.05" },
+          { "name": "label", "value": "Identification and Authentication (03.05)" }
+        ],
+        "controls": [
+          {
+            "id": "SP_800_171_03.05.01",
+            "class": "requirement",
+            "title": "User Identification, Authentication, and Re-Authentication",
+            "props": [
+              { "name": "sort-id", "value": "03.05.01" },
+              { "name": "label", "value": "User Identification, Authentication, and Re-Authentication (03.05.01)" }
+            ],
+            "parts": [
+              {
+                "id": "SP_800_171_03.05.01_smt",
+                "name": "statement",
+                "prose": "Uniquely identify and authenticate system users, and associate that unique identification with processes acting on behalf of those users."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

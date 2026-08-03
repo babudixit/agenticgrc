@@ -142,6 +142,20 @@ def attack_control_mapping_data() -> dict[str, Any]:
 
 
 @pytest.fixture
+def control_control_mapping_data() -> dict[str, Any]:
+    return {
+        "source_control_id": "GV.OC-01",
+        "source_framework": "NIST_CSF_2.0",
+        "target_control_id": "PM-11",
+        "target_framework": "NIST_SP_800-53_r5",
+        "mapping_type": "related",
+        "confidence": None,
+        "comments": "CSF Informative Reference to SP 800-53 Rev 5.",
+        "raw_source": {"subcategory": "GV.OC-01", "control": "PM-11"},
+    }
+
+
+@pytest.fixture
 def mapped_finding_data() -> dict[str, Any]:
     return {
         "finding_id": "tenable:144982:prod-web-01",

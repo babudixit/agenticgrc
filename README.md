@@ -148,6 +148,45 @@ processed/written/failed, duration, run ID) via `structlog`. The full
 Rev 5 catalog (~1,200 controls including enhancements) loads in a couple of
 seconds.
 
+## Additional control frameworks + crosswalks (CSF 2.0, SP 800-171)
+
+The same `UnifiedControl` / `(:Control {uid})` shape already used for
+SP 800-53 also covers NIST CSF 2.0 and SP 800-171 Rev 3 — each has its own
+OSCAL catalog ingester (sharing `_oscal_common.py` parsing helpers with
+`nist_sp800_53.py`) plus a crosswalk ingester that emits
+`ControlControlMapping` records. Those load as
+`(:Control {framework: A})-[:MAPS_TO]->(:Control {framework: NIST_SP_800-53_r5})`
+edges, so a finding that lands on an 800-53 control can be reported against
+CSF outcomes or 800-171 requirements without a second traversal chain.
+
+```powershell
+# --- Catalogs (nodes) ---
+# CSF 2.0: Categories + Subcategories (~219 records; withdrawn CSF 1.1 items
+# kept with an "incorporated into" statement, matching 800-53's withdrawn handling)
+python -m grc_agent.ingesters.nist_csf --output data/csf_2_0.jsonl
+python -m grc_agent.loaders.neo4j_loader --input data/csf_2_0.jsonl --record-type control
+
+# SP 800-171 Rev 3: 130 requirements across 17 families (uses NIST's -min
+# catalog — catalog only, not the 800-171A assessment procedures)
+python -m grc_agent.ingesters.nist_sp800_171 --output data/sp800_171.jsonl
+python -m grc_agent.loaders.neo4j_loader --input data/sp800_171.jsonl --record-type control
+
+# --- Crosswalks (edges into the already-loaded 800-53 catalog) ---
+# CSF 2.0 Informative References -> SP 800-53 (~740 edges). Source is the
+# CSF Reference Tool export (xlsx despite the URL saying json).
+python -m grc_agent.ingesters.nist_csf_to_800_53 --output data/csf_to_800_53.jsonl
+python -m grc_agent.loaders.neo4j_loader --input data/csf_to_800_53.jsonl --record-type control_control_mapping
+
+# SP 800-171 Rev 3 CUI Overlay -> SP 800-53 (~150 edges, including enhancements)
+python -m grc_agent.ingesters.nist_sp800_171_to_800_53 --output data/sp800_171_to_800_53.jsonl
+python -m grc_agent.loaders.neo4j_loader --input data/sp800_171_to_800_53.jsonl --record-type control_control_mapping
+```
+
+**CIS Controls v8** is intentionally deferred: the CIS Controls text is
+copyrighted (CC BY-NC-SA 4.0), so the CIS catalog/crosswalk ingester waits
+on a user-provided copy of CIS's official mapping document rather than
+scraping copyrighted content.
+
 ## Normalizing Tenable findings (Deliverable 4)
 
 ```powershell
@@ -319,5 +358,14 @@ begins:
    output. Verified live end-to-end (see above) against the real Neo4j graph,
    a real 697-technique Chroma collection, and real Claude calls.
 
-Deferred beyond these five: the synthesis agent, additional vendor
-normalizers, the FastAPI layer, and the frontend/UI (Phase 3+).
+**Also landed (post-Deliverable 5):** CSF 2.0 and SP 800-171 Rev 3 catalog
+ingesters (`nist_csf.py`, `nist_sp800_171.py`) plus their official
+crosswalks into SP 800-53 (`nist_csf_to_800_53.py` from the CSF Reference
+Tool Informative References; `nist_sp800_171_to_800_53.py` from the CUI
+Overlay), a new `ControlControlMapping` schema, and
+`--record-type control_control_mapping` on the Neo4j loader. CIS Controls
+v8 is waiting on a user-provided copy of CIS's official mapping document
+(CIS content is copyrighted — see above).
+
+Deferred beyond these: the synthesis agent, additional vendor normalizers,
+the FastAPI layer, and the frontend/UI (Phase 3+).

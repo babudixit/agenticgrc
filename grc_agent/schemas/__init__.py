@@ -7,6 +7,7 @@ from grc_agent.schemas.asset import UnifiedAsset
 from grc_agent.schemas.attack_control_mapping import AttackControlMapping
 from grc_agent.schemas.attack_technique import UnifiedAttackTechnique
 from grc_agent.schemas.control import UnifiedControl
+from grc_agent.schemas.control_control_mapping import ControlControlMapping
 from grc_agent.schemas.enums import (
     AssetCriticality,
     AssetType,
@@ -28,6 +29,7 @@ __all__ = [
     "AssetType",
     "AttackControlMapping",
     "CloudProvider",
+    "ControlControlMapping",
     "Framework",
     "IngestionResult",
     "MappedControl",

@@ -27,7 +27,6 @@ Parsing notes (see the real catalog at github.com/usnistgov/oscal-content):
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from collections.abc import Iterator
 from pathlib import Path
@@ -36,6 +35,18 @@ from typing import Any
 import requests
 import structlog
 
+from grc_agent.ingesters._oscal_common import (
+    build_label_index,
+    canonical_label,
+    extract_statement,
+    fetch_catalog,
+    group_label,
+    guess_canonical_id,
+    is_withdrawn,
+    iter_controls_recursive,
+    param_display,
+    resolve_href_ids,
+)
 from grc_agent.schemas import Framework, IngestionResult, UnifiedControl
 
 logger = structlog.get_logger(__name__)
@@ -46,145 +57,19 @@ DEFAULT_SOURCE_URL = (
 )
 DEFAULT_OUTPUT_PATH = Path("data/sp800_53.jsonl")
 
-_PARAM_PLACEHOLDER = re.compile(r"\{\{\s*insert:\s*param,\s*([\w.-]+)\s*\}\}")
-
-
-def fetch_catalog(source: str, *, timeout: float = 30.0) -> dict[str, Any]:
-    """Load the OSCAL catalog JSON from a local file path or an HTTP(S) URL."""
-    if source.startswith(("http://", "https://")):
-        logger.info("fetching_oscal_catalog", source=source)
-        response = requests.get(source, timeout=timeout)
-        response.raise_for_status()
-        return dict(response.json())
-
-    path = Path(source)
-    logger.info("reading_oscal_catalog", source=str(path))
-    with path.open("r", encoding="utf-8") as f:
-        import json
-
-        return dict(json.load(f))
-
-
-def _canonical_label(props: list[dict[str, Any]], fallback: str) -> str:
-    for prop in props:
-        if prop.get("name") == "label" and "class" not in prop:
-            value = prop.get("value")
-            if isinstance(value, str):
-                return value
-    return fallback
-
-
-def _guess_canonical_id(raw_id: str) -> str:
-    """Best-effort canonicalization for a raw OSCAL id with no resolvable label.
-
-    'ac-2' -> 'AC-2', 'ac-2.1' -> 'AC-2(1)'. Only used as a fallback when a
-    referenced control's real label can't be found in the catalog.
-    """
-    prefix, _, rest = raw_id.partition("-")
-    if not rest:
-        return raw_id.upper()
-    base, _, enhancement = rest.partition(".")
-    if enhancement:
-        return f"{prefix.upper()}-{base}({enhancement})"
-    return f"{prefix.upper()}-{base}"
-
-
-def _is_withdrawn(control: dict[str, Any]) -> bool:
-    return any(
-        prop.get("name") == "status" and prop.get("value") == "withdrawn"
-        for prop in control.get("props", [])
-    )
-
-
-def _iter_controls_recursive(
-    controls: list[dict[str, Any]], parent_raw_id: str | None = None
-) -> Iterator[tuple[dict[str, Any], str | None]]:
-    """Yield every (control, parent_raw_id) pair, descending into enhancements."""
-    for control in controls:
-        yield control, parent_raw_id
-        nested = control.get("controls")
-        if nested:
-            yield from _iter_controls_recursive(nested, parent_raw_id=control["id"])
-
-
-def _build_label_index(groups: list[dict[str, Any]]) -> dict[str, str]:
-    """Map every control's raw OSCAL id to its canonical display label."""
-    index: dict[str, str] = {}
-    for group in groups:
-        for control, _parent in _iter_controls_recursive(group.get("controls", [])):
-            index[control["id"]] = _canonical_label(control.get("props", []), control["id"])
-    return index
-
-
-def _resolve_href_ids(
-    control: dict[str, Any], rel: str, label_index: dict[str, str], self_raw_id: str
-) -> list[str]:
-    resolved: dict[str, None] = {}
-    for link in control.get("links", []):
-        if link.get("rel") != rel:
-            continue
-        href = link.get("href", "")
-        if not href.startswith("#"):
-            continue
-        raw_ref = href[1:]
-        if raw_ref == self_raw_id:
-            continue
-        label = label_index.get(raw_ref) or _guess_canonical_id(raw_ref)
-        resolved.setdefault(label, None)
-    return list(resolved.keys())
-
-
-def _param_display(param: dict[str, Any]) -> str:
-    if isinstance(param.get("label"), str):
-        return param["label"]
-    select = param.get("select")
-    if select and select.get("choice"):
-        return "one of: " + ", ".join(select["choice"])
-    return str(param.get("id", ""))
-
-
-def _resolve_param_placeholders(text: str, params_by_id: dict[str, str]) -> str:
-    def _sub(match: re.Match[str]) -> str:
-        label = params_by_id.get(match.group(1))
-        return f"[{label}]" if label else match.group(0)
-
-    return _PARAM_PLACEHOLDER.sub(_sub, text)
-
-
-def _flatten_statement_parts(
-    parts: list[dict[str, Any]], params_by_id: dict[str, str], depth: int = 0
-) -> list[str]:
-    lines: list[str] = []
-    for part in parts:
-        label = next((p["value"] for p in part.get("props", []) if p.get("name") == "label"), "")
-        prose = part.get("prose")
-        if prose:
-            resolved = _resolve_param_placeholders(prose, params_by_id)
-            prefix = f"{label} " if label else ""
-            lines.append(("  " * depth) + f"{prefix}{resolved}")
-        if part.get("parts"):
-            lines.extend(_flatten_statement_parts(part["parts"], params_by_id, depth + 1))
-    return lines
-
-
-def _extract_statement(control: dict[str, Any], params_by_id: dict[str, str]) -> str:
-    statement_part = next(
-        (p for p in control.get("parts", []) if p.get("name") == "statement"), None
-    )
-    if statement_part is None:
-        return ""
-    lines: list[str] = []
-    if statement_part.get("prose"):
-        lines.append(_resolve_param_placeholders(statement_part["prose"], params_by_id))
-    lines.extend(_flatten_statement_parts(statement_part.get("parts", []), params_by_id))
-    return "\n".join(lines)
-
-
-def _family_label(group: dict[str, Any]) -> str:
-    return next(
-        (p["value"] for p in group.get("props", []) if p.get("name") == "label"),
-        group["id"].upper(),
-    )
+# Re-exported under their original private names so existing call sites/tests
+# (`fetch_catalog`, `_canonical_label`, `_guess_canonical_id`, ...) keep working
+# unchanged now that the actual implementations live in `_oscal_common.py`
+# (shared with `nist_csf.py`/`nist_sp800_171.py` — see that module's docstring).
+_canonical_label = canonical_label
+_family_label = group_label
+_guess_canonical_id = guess_canonical_id
+_is_withdrawn = is_withdrawn
+_iter_controls_recursive = iter_controls_recursive
+_build_label_index = build_label_index
+_resolve_href_ids = resolve_href_ids
+_param_display = param_display
+_extract_statement = extract_statement
 
 
 def parse_catalog(
