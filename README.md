@@ -182,10 +182,33 @@ python -m grc_agent.ingesters.nist_sp800_171_to_800_53 --output data/sp800_171_t
 python -m grc_agent.loaders.neo4j_loader --input data/sp800_171_to_800_53.jsonl --record-type control_control_mapping
 ```
 
-**CIS Controls v8** is intentionally deferred: the CIS Controls text is
-copyrighted (CC BY-NC-SA 4.0), so the CIS catalog/crosswalk ingester waits
-on a user-provided copy of CIS's official mapping document rather than
-scraping copyrighted content.
+**CIS Controls v8** (the 18-control / safeguard framework) is still deferred:
+that catalog text is copyrighted (CC BY-NC-SA 4.0) and waits on CIS's
+official Controls mapping document. Separately, **CIS Benchmarks** (product
+hardening catalogs — Ubuntu, Azure, Windows Server, firewalls, …) are
+supported from local user-provided spreadsheets:
+
+```powershell
+# Reads .xlsx files from a local directory (default: C:\Cyber-GRC\Documents\CISFILES).
+# Does not download or commit copyrighted CIS content — only emits JSON-Lines
+# into data/ (gitignored). Recommendation IDs are namespaced as
+# "<product_slug>:<section>" under framework CIS_Benchmark.
+python -m grc_agent.ingesters.cis_benchmarks `
+  --input-dir C:\Cyber-GRC\Documents\CISFILES `
+  --output data/cis_benchmarks.jsonl `
+  --nist-mappings-output data/cis_benchmark_to_800_53.jsonl `
+  --attack-mappings-output data/attack_to_cis_benchmark.jsonl
+
+python -m grc_agent.loaders.neo4j_loader --input data/cis_benchmarks.jsonl --record-type control
+python -m grc_agent.loaders.neo4j_loader --input data/cis_benchmark_to_800_53.jsonl --record-type control_control_mapping
+python -m grc_agent.loaders.neo4j_loader --input data/attack_to_cis_benchmark.jsonl --record-type attack_control_mapping
+```
+
+`nist_mapping` cells that contain real SP 800-53 IDs become
+`ControlControlMapping` edges into the already-loaded 800-53 catalog. CIS
+Assessment Tool element IDs (`CE-*` / `VP-*` / `VE-*`) are kept in
+`raw_source` only — they are not 800-53 controls. `mitre_techniques` cells
+become `AttackControlMapping` edges (same shape as CTID).
 
 ## Normalizing Tenable findings (Deliverable 4)
 
@@ -363,9 +386,10 @@ ingesters (`nist_csf.py`, `nist_sp800_171.py`) plus their official
 crosswalks into SP 800-53 (`nist_csf_to_800_53.py` from the CSF Reference
 Tool Informative References; `nist_sp800_171_to_800_53.py` from the CUI
 Overlay), a new `ControlControlMapping` schema, and
-`--record-type control_control_mapping` on the Neo4j loader. CIS Controls
-v8 is waiting on a user-provided copy of CIS's official mapping document
-(CIS content is copyrighted — see above).
+`--record-type control_control_mapping` on the Neo4j loader. CIS Benchmark
+product catalogs (`cis_benchmarks.py`) ingest local user-provided `.xlsx`
+exports into `CIS_Benchmark` controls plus NIST / ATT&CK edges. CIS Controls
+v8 is still waiting on CIS's official Controls mapping document.
 
 Deferred beyond these: the synthesis agent, additional vendor normalizers,
 the FastAPI layer, and the frontend/UI (Phase 3+).

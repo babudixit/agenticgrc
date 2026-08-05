@@ -43,6 +43,11 @@ class Framework(StrEnum):
     NIST_SP_800_53_R5 = "NIST_SP_800-53_r5"
     NIST_CSF_2_0 = "NIST_CSF_2.0"
     CIS_V8 = "CIS_v8"
+    #: Product-specific CIS Benchmark catalogs (Ubuntu, Azure, Windows Server, …),
+    #: distinct from the CIS Controls v8 framework above. Recommendation IDs are
+    #: namespaced as "<benchmark_slug>:<section>" so they don't collide across
+    #: products (see `ingesters/cis_benchmarks.py`).
+    CIS_BENCHMARK = "CIS_Benchmark"
     NIST_SP_800_171_R3 = "NIST_SP_800-171_r3"
 
 
