@@ -1,0 +1,48 @@
+{
+  "findings": [
+    {
+      "finding_id": "wiz-s3-public-001",
+      "source_system": "Wiz",
+      "title": "S3 bucket is publicly accessible",
+      "severity": "high",
+      "timestamp": "2024-08-05T11:00:00Z",
+      "resource_id": "arn:aws:s3:::acme-public-assets",
+      "description": "Bucket ACL allows public LIST/GET.",
+      "remediation": "Remove public ACLs and enforce bucket policies.",
+      "compliance": {
+        "status": "FAILED",
+        "controls": ["CIS AWS 2.1.5"]
+      }
+    },
+    {
+      "Id": "arn:aws:securityhub:us-east-1:111122223333:subscription/cis-aws-foundations-benchmark/v/1.2.0/2.3",
+      "ProductName": "Security Hub",
+      "Title": "Ensure the S3 bucket CloudTrail logs to is not publicly accessible",
+      "Severity": {"Label": "MEDIUM", "Normalized": 40},
+      "UpdatedAt": "2024-08-06T16:45:00.000Z",
+      "Resources": [
+        {
+          "Id": "arn:aws:s3:::aws-cloudtrail-logs-111122223333",
+          "Type": "AwsS3Bucket"
+        }
+      ],
+      "Description": "CloudTrail logging bucket should not be public.",
+      "Remediation": {
+        "Recommendation": {
+          "Text": "Update the bucket policy to deny public access."
+        }
+      }
+    },
+    {
+      "id": "prisma-iam-77",
+      "product_name": "Prisma Cloud",
+      "title": "Overly permissive IAM role",
+      "severity": "Critical",
+      "created_at": "2024-08-07T07:20:00Z",
+      "cloud_resource_id": "arn:aws:iam::111122223333:role/admin-breakglass",
+      "description_text": "Role grants *:* on all resources.",
+      "related_cves": [],
+      "mitre_techniques": ["T1078.004"]
+    }
+  ]
+}

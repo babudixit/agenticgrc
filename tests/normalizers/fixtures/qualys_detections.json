@@ -1,0 +1,36 @@
+{
+  "detections": [
+    {
+      "qid": 38173,
+      "title": "OpenSSL Vulnerability (Heartbleed)",
+      "severity": 5,
+      "dns": "prod-web-01.example.com",
+      "ip": "10.0.1.10",
+      "cve_list": ["CVE-2014-0160"],
+      "diagnosis": "The remote service is affected by Heartbleed.",
+      "solution": "Upgrade OpenSSL to a patched version.",
+      "last_found": "2024-05-18T02:11:23Z",
+      "first_found": "2024-01-02T10:00:00Z"
+    },
+    {
+      "qid": 82053,
+      "title": "SSH Protocol Version 1 Supported",
+      "severity": "3",
+      "hostname": "corp-file-02",
+      "cve_id_list": "",
+      "diagnosis": "The SSH server supports protocol version 1.",
+      "solution": "Disable SSH protocol version 1.",
+      "last_found": "2024-06-01T12:00:00Z"
+    },
+    {
+      "QID": 91342,
+      "TITLE": "Apache Log4j RCE",
+      "SEVERITY": "Critical",
+      "dns": "prod-app-03",
+      "CVE_ID_LIST": "CVE-2021-44228,CVE-2021-45046",
+      "DIAGNOSIS": "Log4Shell remote code execution.",
+      "SOLUTION": "Upgrade Log4j.",
+      "LAST_FOUND_DATETIME": "2024-07-15T08:30:00Z"
+    }
+  ]
+}

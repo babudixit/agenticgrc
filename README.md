@@ -210,20 +210,36 @@ Assessment Tool element IDs (`CE-*` / `VP-*` / `VE-*`) are kept in
 `raw_source` only — they are not 800-53 controls. `mitre_techniques` cells
 become `AttackControlMapping` edges (same shape as CTID).
 
-## Normalizing Tenable findings (Deliverable 4)
+## Normalizing findings (Tenable, Qualys, SIEM, CSPM)
+
+Every vendor adapter emits the same **`UnifiedFinding`** common information
+model. The mapping agent never sees Tenable/Qualys/SIEM/CSPM field names —
+only that shared shape — so CVE→CWE→ATT&CK→Controls walkthroughs work the
+same regardless of source. SIEM alerts that already carry ATT&CK IDs populate
+`mitre_techniques` for a direct match; scanners typically leave that empty.
 
 ```powershell
+# Per-vendor CLIs
 python -m grc_agent.normalizers.tenable --input path\to\tenable_export.json --output data\tenable_findings.jsonl
+python -m grc_agent.normalizers.qualys  --input path\to\qualys_detections.json --output data\qualys_findings.jsonl
+python -m grc_agent.normalizers.siem    --input path\to\siem_alerts.json --output data\siem_findings.jsonl
+python -m grc_agent.normalizers.cspm    --input path\to\cspm_findings.json --output data\cspm_findings.jsonl
+
+# Or one ingress router
+python -m grc_agent.normalizers.ingress --source tenable|qualys|siem|cspm `
+  --input path\to\export.json --output data\unified_findings.jsonl
 ```
 
-Accepts either a Tenable export shaped as `{"findings": [...]}` or a bare
-JSON array of finding objects. Each finding is normalized into a
-`UnifiedFinding` — severity is mapped onto the canonical scale while the
-vendor's own rating is preserved verbatim (`vendor_severity`), CVEs/CPEs are
-validated and normalized, and the per-host scan `output` text is folded into
-`description` alongside Tenable's generic plugin description. Malformed
-records are skipped (and reported in the run's `IngestionResult.errors`)
+Accepts either a wrapped object (`{"findings": [...]}` / `{"alerts": [...]}` /
+`{"detections": [...]}`) or a bare JSON array. Severity is mapped onto the
+canonical scale while the vendor rating is preserved as `vendor_severity`.
+Malformed records are skipped (and reported in `IngestionResult.errors`)
 rather than aborting the whole run.
+
+Qualys / SIEM / CSPM adapters use pragmatic *common envelopes* (see the
+fixtures under `tests/normalizers/fixtures/`) so upstream connectors can
+reshape proprietary API dumps before normalization. Tenable continues to
+accept its native vulnerability export shape.
 
 ## Ingesting the CVE/CWE/ATT&CK reference graph (Deliverable 5 prep)
 

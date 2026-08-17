@@ -1,0 +1,42 @@
+{
+  "alerts": [
+    {
+      "alert_id": "splunk-es-1001",
+      "source_system": "Splunk ES",
+      "rule_name": "Suspicious PowerShell Encoded Command",
+      "severity": "high",
+      "timestamp": "2024-08-01T14:22:10Z",
+      "host": "workstation-42",
+      "description": "Encoded PowerShell invocation detected on an endpoint.",
+      "mitre_techniques": ["T1059.001", "T1027"],
+      "user": "jdoe",
+      "process_name": "powershell.exe"
+    },
+    {
+      "id": "elastic-2002",
+      "vendor": "Elastic SIEM",
+      "title": "Brute force login against SSH",
+      "severity": "medium",
+      "@timestamp": "2024-08-02T09:15:00.000Z",
+      "hostname": "bastion-01",
+      "message": "Multiple failed SSH authentications.",
+      "threat": {
+        "technique": [
+          {"id": "T1110.001", "name": "Password Guessing"}
+        ]
+      },
+      "src_ip": "203.0.113.50"
+    },
+    {
+      "alert_id": "sentinel-3003",
+      "source_system": "Microsoft Sentinel",
+      "title": "Possible CVE exploitation attempt",
+      "severity": "critical",
+      "event_time": "2024-08-03T01:00:00Z",
+      "device": "edge-fw-01",
+      "description": "IDS signature matched known exploit traffic.",
+      "cves": ["CVE-2023-44487"],
+      "attack_techniques": "T1190"
+    }
+  ]
+}
